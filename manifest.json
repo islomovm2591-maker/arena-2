@@ -1,0 +1,37 @@
+{
+  "name": "Stickman Jang 2",
+  "short_name": "Jang 2",
+  "description": "Qora stickman jangchi: bosqichlar, bosslar, qurollar do'koni va cheksiz jang. Internetsiz ishlaydi.",
+  "id": "sj2-stickman-jang-2",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
+  "orientation": "landscape",
+  "background_color": "#07080f",
+  "theme_color": "#07080f",
+  "lang": "uz",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
