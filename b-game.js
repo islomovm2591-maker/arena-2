@@ -57,6 +57,7 @@
   let combo, comboT, maxCombo, kills, earnedC, earnedG, score, dmgTaken, usedPot, endT, hintT, atkers, bossRef, ewave;
   // ---------- Kinematik effektlar (zum, kino-chiziqlar, tezlik chiziqlari, jazava, yoriqlar, boss barabani) ----------
   let zoom = 1, zTgt = 1, zHold = 0, zfx = 0, zfy = 0, cine = 0, cineHold = 0, lines = 0, linesCol = '#fff', fury = false, furyT = 0, tier = 0;
+  let ghosts = [], ghT = 0;
   let cracks = [], embers = [], chip = 1, chipD = 0, beatT = 0, beatN = 0, heartT = 0, redA = 0;
   function punch(z, hold, wx, wz) { if (z >= zTgt || zHold <= 0) { zTgt = z; zHold = hold; zfx = wx; zfy = wz; } }
   function cinema(hold) { cineHold = Math.max(cineHold, hold); }
@@ -116,10 +117,10 @@
     en = []; items = []; pr = []; ep = []; fx = []; tx = []; stains = []; trail = []; crates = [];
     cam = 0; camLock = null; shake = 0; flashA = 0; hitstop = 0; slow = 1; slowT = 0; time = 0; enc = null; encIdx = 0; goT = 0; banner = null;
     combo = 0; comboT = 0; maxCombo = 0; kills = 0; earnedC = 0; earnedG = 0; score = 0; dmgTaken = 0; usedPot = 0; endT = 0; hintT = 0; atkers = 0; bossRef = null; ewave = 0;
-    zoom = 1; zTgt = 1; zHold = 0; cine = 0; cineHold = 0; lines = 0; fury = false; furyT = 0; tier = 0; cracks = []; embers = []; chip = 1; chipD = 0; beatT = 0; beatN = 0; heartT = 0; redA = 0;
+    zoom = 1; zTgt = 1; zHold = 0; cine = 0; cineHold = 0; lines = 0; fury = false; furyT = 0; tier = 0; cracks = []; embers = []; chip = 1; chipD = 0; beatT = 0; beatN = 0; heartT = 0; redA = 0; ghosts = []; ghT = 0;
     const hd = B.heroDef(); HM = Object.assign({ dmg: 1, spd: 1, hp: 1, coin: 1, mpg: 1, sk: 1, atk: 1 }, hd.m);
     const maxhp = Math.round((100 + 25 * s.hpL) * HM.hp), maxmp = 60 + 10 * s.mpL;
-    hero = { type: 'hero', hd, x: 150, z: 0, vx: 0, vz: 0, face: 1, sc: 1.3, hp: maxhp, maxhp, mp: maxmp * .6, maxmp, st: 'idle', t: 0, ph: 0, pk: 'idle', pu: 0, ci: 0, dur: .3, hit: false, inv: 0, buf: 0, jbuf: 0, cool: 0, wep: s.eq, wtmp: 0, num: 0, dead: false, flash: 0, apose: 's1', skillK: 'wave', tick: 0, potCd: 0 };
+    hero = { type: 'hero', hd, x: 150, z: 0, vx: 0, vz: 0, face: 1, sc: 1.3, hp: maxhp, maxhp, mp: maxmp * .6, maxmp, st: 'idle', t: 0, ph: 0, pk: 'idle', pu: 0, ci: 0, dur: .3, hit: false, inv: 0, buf: 0, jbuf: 0, cool: 0, wep: s.eq, wtmp: 0, num: 0, dead: false, flash: 0, apose: 's1', skillK: 'wave', tick: 0, potCd: 0, parry: 0, runT: 0, airAtk: 0, lastAtk: -9 };
     if (endless) { L.len = Math.max(B.VW, 1100); camLock = (L.len - B.VW) / 2; cam = camLock; hero.x = L.len / 2 - 150; startEndlessWave(); }
     else {
       L.len = L.encs[L.encs.length - 1].x + B.VW / 2 + 300;
@@ -184,6 +185,7 @@
   function hurtHero(dmg, dir, o) {
     const h = hero; o = o || {};
     if (h.inv > 0 || h.dead || G.mode !== 'play') return false;
+    if (o.src && h.parry > 0) { parry(o.src); return false; }
     dmg = Math.max(1, dmg * diffM().d); h.hp -= dmg; dmgTaken += dmg; endCombo(); h.inv = o.inv || .9; h.flash = .12;
     addShake(.3); B.buzz(35); B.sfx('hurt'); blood(h.x, h.z + 60, 9, -dir); addTx(h.x, GY - h.z - 140, '-' + Math.round(dmg), '#ff5a5a', 1); star(h.x, h.z + 70, false, '#ffd0d0');
     flashA = Math.max(flashA, .12); redA = Math.max(redA, Math.min(.6, dmg / h.maxhp * 3));
@@ -218,6 +220,7 @@
       }
     }
     if (fury) dmg *= 1.25;
+    if (e.frz > 0 && e.frzK === 'ice' && !o.fin) { dmg *= 1.6; e.frz = 0; B.sfx('break'); addWord(e.x, GY - e.z - e.hz - 40, 'SINDI!', '#bff6ff'); for (let i = 0; i < 8; i++) fx.push({ k: 'seg', x1: e.x + rnd(-14, 14), y1: GY - e.z - rnd(20, e.hz), x2: e.x + rnd(-14, 14), y2: GY - e.z - rnd(20, e.hz), vx: rnd(-260, 260), vy: rnd(-420, -100), rot: 0, vr: rnd(-9, 9), w: 5, col: '#cff6ff', rim: '#4fe8ff', t: 0, life: .9 }); }
     e.hp -= dmg; e.flash = .09; e.acc = (e.acc || 0) + dmg;
     combo++; comboT = 2.6; if (combo > maxCombo) maxCombo = combo; comboTier(); hero.mp = Math.min(hero.maxmp, hero.mp + (o.mp == null ? 2.6 : o.mp) * HM.mpg); score += Math.round(dmg);
     const hx = e.x, hz = e.z + e.hz * .55;
@@ -277,16 +280,114 @@
 
   // ---------- Hujum ----------
   function startAtk(ci, air) {
-    const h = hero, w = W[curW()];
+    const h = hero, w = W[curW()], fresh = B.press.a && ci === 0 && !air && time - h.lastAtk > .45;
+    h.parry = fresh ? .2 : 0; h.lastAtk = time; h.dash = false; if (air) h.airAtk = 1;
     h.st = 'atk'; h.ci = ci; h.t = 0; h.hit = false; h.buf = 0; h.air = air;
     h.dur = w.dur * HM.atk * (ci === 2 ? 1.28 : 1) * (air ? .9 : 1);
     h.apose = w.pose === 't' ? 't' : (air ? 's2' : ['s1', 's2', 's3'][ci]);
     h.vx += h.face * (ci === 2 ? 250 : 150) * (air ? .5 : 1); B.sfx('swing'); h.sw = 0;
+    if (ci === 0 && !air && h.runT > .28) {                     // yugurib kelib — HAMLA
+      h.dash = true; h.apose = 'lunge'; h.dur = .42; h.vx = h.face * 820; h.runT = 0; B.sfx('dash'); speedLines(.25, h.hd.col);
+      for (let i = 0; i < 6; i++) fx.push({ k: 'dust', x: h.x - h.face * rnd(0, 30), z: 2, vx: -h.face * rnd(60, 160), vz: rnd(20, 80), r: rnd(5, 10), t: 0, life: .4 });
+    }
   }
+  // ---------- Qahramon jang uslublari: yakunlovchi zarba, osmon zarbasi, qaytarish ----------
+  const FPOSE = { ice: 's3', fire: 'up', bolt: 't', gold: 'pound', arcane: 'lunge', halo: 'up' };
+  function startFin() {
+    const h = hero, H = h.hd; h.st = 'fin'; h.t = 0; h.hit = false; h.dur = .66; h.inv = Math.max(h.inv, .7); h.fpose = FPOSE[H.el] || 's3'; h.buf = 0; h.lastAtk = time;
+    h.vx = h.face * (H.el === 'arcane' ? 0 : 160); B.sfx('fin');
+    tx.push({ k: 'w', x: h.x + h.face * 40, y: GY - h.z - 210, s: H.fn || 'ZARBA!', col: H.col, t: 0, life: .9, rot: rnd(-.08, .08), big: 1 });
+    ring(h.x, 60, 110, H.col, .35, 6); punch(1.07, .4, h.x + h.face * 60, 80);
+  }
+  function startPlunge() {
+    const h = hero; h.st = 'plunge'; h.t = 0; h.hit = false; h.vx *= .3; h.inv = Math.max(h.inv, .3); h.airAtk = 0; B.sfx('swing'); B.sfx('dash');
+  }
+  function plungeImpact() {
+    const h = hero, w = W[curW()], x = h.x + h.face * 30, dmg = w.dmg * wmul(curW()) * 2 * (1 + Math.min(.6, h.pH / 600));
+    ring(x, 6, 200, '#fff', .4, 9); ring(x, 6, 130, h.hd.col, .35, 6); smoke(x, 8, 8, true); sparks(x, 10, 14, h.hd.lite); crack(x, 180);
+    addShake(.75); hitstop = .1; punch(1.14, .28, x, 30); flashA = Math.max(flashA, .2); B.sfx('boom'); B.sfx('impact'); B.buzz(45);
+    en.forEach(e => { if (!e.dead && Math.abs(e.x - x) < 200 + e.hw && e.z < 90) hitEnemy(e, dmg * (Math.abs(e.x - x) < 90 ? 1 : .7), e.x >= x ? 1 : -1, { kb: 320, down: !e.boss, heavy: true }); });
+    crates.forEach(cr => { if (cr.hp > 0 && Math.abs(cr.x - x) < 200) breakCrate(cr); });
+    tx.push({ k: 'w', x, y: GY - 190, s: 'OSMON ZARBASI!', col: h.hd.col, t: 0, life: .8, rot: rnd(-.1, .1), big: 1 });
+    h.st = 'idle'; h.cool = .2; h.vx = 0;
+  }
+  function parry(e) {
+    const h = hero, mx = (h.x + e.x) / 2; h.parry = 0; h.inv = Math.max(h.inv, .4); h.mp = Math.min(h.maxmp, h.mp + 12);
+    slow = .25; slowT = .5; hitstop = .09; punch(1.2, .45, mx, 85); flashA = Math.max(flashA, .3); speedLines(.35, '#bff6ff');
+    B.sfx('parry'); B.buzz(30); sparks(mx, 85, 18, '#fff'); star(mx, 85, true, '#e8fbff'); ring(mx, 85, 90, '#bff6ff', .3, 6);
+    tx.push({ k: 'w', x: h.x, y: GY - h.z - 195, s: 'QAYTARISH!', col: '#7fe3ff', t: 0, life: .9, rot: rnd(-.1, .1), big: 1 });
+    e.hit = true; e.dizzy = e.boss ? 1.3 : 1.1;
+    if (e.boss) { e.st = 'rec'; e.t = 0; e.rdur = 1.3; e.vx = 0; addWord(e.x, GY - e.z - e.hz - 30, 'OCHIQ!', '#ffd23f'); }
+    else { e.st = 'hurt'; e.t = 0; e.hdur = 1.1; e.vx = (e.x >= h.x ? 1 : -1) * 240; if (e.z > 0) e.vz = Math.min(e.vz, 0); }
+  }
+  function pillar(x, kind, dmg) {
+    const H = hero.hd; fx.push({ k: 'pillar', x, kind, col: kind === 'fire' ? '#ff7a1f' : '#fff0a0', t: 0, life: .55 });
+    ring(x, 6, 80, kind === 'fire' ? '#ffb02e' : '#fff', .35, 7); addShake(.3); B.sfx(kind === 'fire' ? 'boom' : 'gem');
+    if (kind === 'fire') for (let i = 0; i < 8; i++) fx.push({ k: 'fire', x: x + rnd(-20, 20), z: rnd(0, 60), vx: rnd(-60, 60), vz: rnd(200, 600), r: rnd(8, 16), t: 0, life: rnd(.3, .6) });
+    else for (let i = 0; i < 10; i++) fx.push({ k: 'spark', x: x + rnd(-24, 24), z: rnd(0, 30), vx: rnd(-200, 200), vz: rnd(100, 400), t: 0, life: .5, col: '#fff6c8' });
+    en.forEach(e => {
+      if (e.dead || Math.abs(e.x - x) > 60 + e.hw) return;
+      hitEnemy(e, dmg, e.x >= hero.x ? 1 : -1, { kb: 100, heavy: true, down: !e.boss, fin: true });
+      if (!e.dead && !e.boss) e.vz = 620;
+      if (kind === 'fire' && !e.dead) { e.burn = 2.6; e.burnD = dmg * .08; }
+    });
+  }
+  function doFin(lock) {
+    const h = hero, H = h.hd, f = h.face, X = h.x, wk = curW(), w = W[wk], base = w.dmg * wmul(wk) * 2.2;
+    const alive = () => en.filter(e => !e.dead && e.inv <= 0);
+    const front = r => alive().filter(e => (e.x - X) * f > -30 && Math.abs(e.x - X) < r + e.hw && zov(h.z - 20, h.z + 170, e.z, e.z + e.hz));
+    hitstop = Math.max(hitstop, .08); punch(1.12, .3, X + f * 90, 80); flashA = Math.max(flashA, .18); speedLines(.3, H.col); addShake(.4);
+    switch (H.el) {
+      case 'ice': {
+        front(w.reach * 1.7).forEach(e => { hitEnemy(e, base, f, { kb: 40, heavy: true, fin: true }); if (!e.dead) { e.frz = e.boss ? .9 : 2; e.frzK = 'ice'; if (!e.boss) { e.st = 'hurt'; e.t = 0; e.hdur = .3; } } });
+        ring(X + f * 90, 50, 180, '#bff6ff', .45, 8); B.sfx('freeze');
+        for (let i = 0; i < 22; i++) fx.push({ k: 'spark', x: X + f * rnd(20, 200), z: rnd(10, 150), vx: f * rnd(50, 300), vz: rnd(-100, 250), t: 0, life: rnd(.3, .6), col: B.pick(['#e4fcff', '#4fe8ff', '#fff']) });
+        break;
+      }
+      case 'fire': for (let i = 0; i < 4; i++) later(i * .08, () => pillar(X + f * (80 + i * 80), 'fire', base * .6)); break;
+      case 'bolt': {
+        let cur = { x: X + f * 40, z: h.z + 90 }, pool = alive(), n = 0;
+        const first = pool.filter(e => Math.abs(e.x - X) < 320).sort((a, b) => Math.abs(a.x - X) - Math.abs(b.x - X))[0];
+        if (!first) { fx.push({ k: 'zap', x1: cur.x, y1: GY - cur.z, x2: cur.x + f * 260, y2: GY - 20, t: 0, life: .3 }); B.sfx('zap'); break; }
+        let tgt = first;
+        while (tgt && n < 6) {
+          const from = cur, e = tgt, k = n; later(k * .07, () => { fx.push({ k: 'zap', x1: from.x, y1: GY - from.z, x2: e.x, y2: GY - e.z - e.hz * .6, t: 0, life: .32 }); B.sfx('zap'); if (!e.dead) { hitEnemy(e, base * (k ? .7 : 1), e.x >= X ? 1 : -1, { kb: 60, heavy: true, fin: true }); if (!e.dead) { e.frz = e.boss ? .5 : 1; e.frzK = 'bolt'; } } sparks(e.x, e.z + e.hz * .6, 8, '#9dffb8'); });
+          cur = { x: e.x, z: e.z + e.hz * .6 }; pool = pool.filter(o => o !== e); n++;
+          tgt = pool.filter(o => Math.abs(o.x - e.x) < 400).sort((a, b) => Math.abs(a.x - e.x) - Math.abs(b.x - e.x))[0];
+        }
+        break;
+      }
+      case 'gold': {
+        const x = X + f * 70; ring(x, 6, 300, '#ffd23f', .5, 10); ring(x, 6, 180, '#fff6c8', .4, 7); crack(x, 220); smoke(x, 8, 8, true); B.sfx('boom'); B.sfx('impact'); addShake(.7);
+        for (let i = -6; i <= 6; i++) fx.push({ k: 'spark', x: x + i * 45, z: 6, vx: i * 40, vz: rnd(200, 420), t: 0, life: .5, col: '#ffd23f' });
+        alive().forEach(e => { if (Math.abs(e.x - x) < 300 + e.hw && e.z < 100) hitEnemy(e, base * .9, e.x >= x ? 1 : -1, { kb: 380, down: !e.boss, heavy: true, fin: true }); });
+        crates.forEach(cr => { if (cr.hp > 0 && Math.abs(cr.x - x) < 300) breakCrate(cr); });
+        break;
+      }
+      case 'arcane': {
+        const tg = front(360).sort((a, b) => Math.abs(b.x - X) - Math.abs(a.x - X))[0];
+        const dist = tg ? Math.abs(tg.x - X) + 70 : 240, nx = clamp(X + f * dist, lock[0], lock[1]);
+        const passed = alive().filter(e => (e.x - X) * f > -20 && (e.x - nx) * f < 20 && zov(h.z - 20, h.z + 170, e.z, e.z + e.hz));
+        for (let i = 0; i <= 8; i++) ghosts.push(snap(h, X + (nx - X) * i / 8, .7 - i * .04));
+        h.x = nx; h.face = -f; smoke(X, 30, 5); smoke(nx, 30, 4); B.sfx('dash');
+        fx.push({ k: 'slash', x: (X + nx) / 2, z: h.z + 70, ang: 0, len: Math.abs(nx - X) / 2 + 40, col: H.col, t: 0, life: .3 });
+        later(.2, () => { passed.forEach(e => { if (!e.dead) { hitEnemy(e, base, f, { kb: 200, heavy: true, down: !e.boss, fin: true }); slash(e.x, e.z + e.hz * .6, H.col, true); slash(e.x, e.z + e.hz * .6, '#fff', true); } }); B.sfx('slash'); addShake(.4); });
+        break;
+      }
+      case 'halo': default: {
+        const tgs = alive().filter(e => Math.abs(e.x - X) < 560).sort((a, b) => Math.abs(a.x - X) - Math.abs(b.x - X)).slice(0, 4);
+        if (!tgs.length) pillar(X + f * 120, 'light', base * .8);
+        tgs.forEach((e, i) => later(i * .12, () => pillar(e.dead ? e.x : e.x, 'light', base * .8)));
+        break;
+      }
+    }
+    crates.forEach(cr => { if (cr.hp > 0 && (cr.x - X) * f > 0 && Math.abs(cr.x - X) < 200) breakCrate(cr); });
+  }
+  function snap(h, x, a) { return { type: 'hero', hd: h.hd, x: x == null ? h.x : x, z: h.z, face: h.face, sc: h.sc, pk: h.pk, pu: h.pu, ph: h.ph, vz: h.vz, wep: h.wep, t: h.t, num: 0, a: a || .5 }; }
   function doStrike() {
-    const h = hero, wk = curW(), w = W[wk], heavyHit = h.ci === 2 && !h.air;
+    const h = hero, wk = curW(), w = W[wk], heavyHit = (h.ci === 2 && !h.air) || h.dash;
     const base = w.dmg * wmul(wk) * (heavyHit ? 1.6 : 1) * (h.air ? .9 : 1);
-    const reach = w.reach * (heavyHit ? 1.08 : 1), x0 = h.x - h.face * 14, x1 = h.x + h.face * reach, lo = Math.min(x0, x1), hi = Math.max(x0, x1);
+    const reach = w.reach * (heavyHit ? 1.08 : 1) + (h.dash ? 50 : 0), x0 = h.x - h.face * 14, x1 = h.x + h.face * reach, lo = Math.min(x0, x1), hi = Math.max(x0, x1);
     let hits = 0, big = false;
     en.forEach(e => {
       if (e.dead || e.inv > 0) return;
@@ -322,7 +423,7 @@
   // ---------- Qahramon yangilash ----------
   function heroUpdate(dt) {
     const h = hero, k = B.keys, s = B.S0, SPD = SPD0 * HM.spd;
-    h.t += dt; h.inv = Math.max(0, h.inv - dt); h.buf -= dt; h.jbuf -= dt; h.flash -= dt; h.cool -= dt; h.potCd -= dt; h.num = 0;
+    h.t += dt; h.inv = Math.max(0, h.inv - dt); h.buf -= dt; h.jbuf -= dt; h.flash -= dt; h.cool -= dt; h.potCd -= dt; h.num = 0; h.parry -= dt;
     if (h.wtmp > 0) { h.wtmp -= dt; if (h.wtmp <= 0) { h.wep = s.eq; addTx(h.x, GY - 150, "Qurol almashdi", '#fff', 0, .8); } }
     if (!h.dead) {
       h.mp = Math.min(h.maxmp, h.mp + dt * 3.2 * HM.mpg);
@@ -335,8 +436,9 @@
       case 'idle': case 'run': {
         const tv = dir * SPD; h.vx += clamp(tv - h.vx, -dt * 2600, dt * 2600);
         if (dir) h.face = dir;
+        if (ground && dir && Math.abs(h.vx) > SPD * .8) h.runT += dt; else h.runT = 0;
         if (h.jbuf > 0 && ground) { h.vz = JUMPV; h.jbuf = 0; B.sfx('jump'); for (let i = 0; i < 5; i++) fx.push({ k: 'dust', x: h.x + rnd(-14, 14), z: 2, vx: rnd(-60, 60), vz: rnd(20, 70), r: rnd(4, 8), t: 0, life: .4 }); }
-        if ((h.buf > 0 || k.a) && h.cool <= 0) startAtk(0, !ground);
+        if ((h.buf > 0 || k.a) && h.cool <= 0) { if (!ground && h.airAtk && h.z > 70) startPlunge(); else startAtk(0, !ground); }
         break;
       }
       case 'atk': {
@@ -344,6 +446,8 @@
         h.vx += clamp(dir * SPD * (h.air ? .8 : .25) - h.vx, -dt * 1500, dt * 1500) * (h.air ? 1 : .6);
         if (!h.hit && u >= hz[0]) { h.hit = true; doStrike(); }
         if (u >= .6 && (h.buf > 0 || k.a) && h.ci < 2 && !h.air) { if (dir) h.face = dir; startAtk(h.ci + 1, false); }
+        else if (u >= .62 && (h.buf > 0 || k.a) && h.ci === 2 && !h.air) { if (dir) h.face = dir; startFin(); }
+        else if (u >= .55 && h.buf > 0 && h.air && h.z > 70) startPlunge();
         else if (u >= 1) { h.st = 'idle'; h.cool = h.ci === 2 ? .14 : 0; }
         break;
       }
@@ -368,20 +472,37 @@
         if (u >= 1) { h.st = 'idle'; h.cool = .1; }
         break;
       }
+      case 'fin': {
+        const u = h.t / h.dur; h.vx *= Math.pow(.02, dt);
+        if (!h.hit && u >= .48) { h.hit = true; doFin(lock); }
+        if (u >= 1) { h.st = 'idle'; h.cool = .2; }
+        break;
+      }
+      case 'plunge': {
+        h.inv = Math.max(h.inv, .1); h.vx *= Math.pow(.05, dt);
+        if (h.t < .13) { h.vz = 140; h.pH = h.z; } else { h.vz = -1600; if (Math.random() < .7) fx.push({ k: 'spark', x: h.x + rnd(-10, 10), z: h.z + rnd(40, 120), vx: 0, vz: 400, t: 0, life: .2, col: h.hd.col }); }
+        break;
+      }
       case 'hurt': h.vx *= Math.pow(.02, dt); if (h.t > .26) h.st = 'idle'; break;
     }
     // fizika
     h.x += h.vx * dt; h.x = clamp(h.x, lock[0], lock[1]);
-    if (h.z > 0 || h.vz > 0) { h.vz -= GRAV * dt; h.z += h.vz * dt; if (h.z <= 0) { h.z = 0; if (h.vz < -300) { for (let i = 0; i < 4; i++) fx.push({ k: 'dust', x: h.x + rnd(-14, 14), z: 2, vx: rnd(-80, 80), vz: rnd(20, 60), r: rnd(4, 8), t: 0, life: .35 }); } h.vz = 0; if (h.dead) h.vx *= .3; } }
+    if (h.z > 0 || h.vz > 0) { h.vz -= GRAV * dt; h.z += h.vz * dt; if (h.z <= 0) { h.z = 0; h.airAtk = 0; if (h.st === 'plunge' && !h.dead) plungeImpact(); if (h.vz < -300) { for (let i = 0; i < 4; i++) fx.push({ k: 'dust', x: h.x + rnd(-14, 14), z: 2, vx: rnd(-80, 80), vz: rnd(20, 60), r: rnd(4, 8), t: 0, life: .35 }); } h.vz = 0; if (h.dead) h.vx *= .3; } }
     // poza
     const sp = Math.abs(h.vx);
     if (h.dead) { h.pk = 'down'; h.pu = 0; } else if (h.st === 'hurt') h.pk = 'hurt';
     else if (h.st === 'atk') { h.pk = h.apose; h.pu = clamp(h.t / h.dur, 0, 1); }
+    else if (h.st === 'fin') { h.pk = h.fpose; h.pu = clamp(h.t / h.dur, 0, 1); }
+    else if (h.st === 'plunge') { h.pk = 's3'; h.pu = h.t < .13 ? .36 : .62; }
     else if (h.st === 'skill') { h.pk = h.skillK === 'wave' ? 'wave' : h.skillK === 'spin' ? 'spin' : 'pound'; h.pu = clamp(h.t / h.dur, 0, 1); }
     else if (h.z > 0 || h.vz > 0) h.pk = 'air';
     else if (sp > 40) { h.pk = 'run'; h.ph += dt * sp / 15; } else h.pk = 'idle';
     // oqish izi
-    if ((h.st === 'atk' && h.pu > .28 && h.pu < .78) || (h.st === 'skill' && h.skillK === 'spin')) {
+    ghT -= dt;
+    if (!h.dead && ghT <= 0 && ((h.st === 'atk' && h.dash) || h.st === 'plunge' || h.st === 'fin' || h.st === 'skill' || fury && Math.abs(h.vx) > 200)) { ghT = .035; ghosts.push(snap(h)); }
+    for (let i = ghosts.length - 1; i >= 0; i--) { ghosts[i].a -= dt * 2.6; if (ghosts[i].a <= 0) ghosts.splice(i, 1); }
+    if (ghosts.length > 24) ghosts.splice(0, ghosts.length - 24);
+    if ((h.st === 'atk' && h.pu > .28 && h.pu < .78) || (h.st === 'fin' && h.pu > .25 && h.pu < .8) || h.st === 'plunge' || (h.st === 'skill' && h.skillK === 'spin')) {
       const P = B.poseOf(h), S = B.skel(h, P), wl = (W[h.wep].len) * h.sc; const px = S.handF[0], py = S.handF[1];
       trail.push({ x1: px + S.wd[0] * wl * .35, y1: py + S.wd[1] * wl * .35, x2: px + S.wd[0] * wl, y2: py + S.wd[1] * wl, a: 1, col: W[h.wep].col, brk: !h.sw }); h.sw = 1;
     } else h.sw = 0;
@@ -404,10 +525,11 @@
 
   // ---------- Dushman AI ----------
   const tokenMax = () => (diffM().d > 1.2 ? 3 : 2);
-  function startWind(e, T) { e.st = 'wind'; e.t = 0; e.hit = false; e.vx = 0; e.wdur = T.wind; e.sdur = T.strike; e.rdur = T.rec; e.apose = T.pose || 't'; e.atk = 'melee'; atkers++; }
+  function glint(e) { fx.push({ k: 'glint', x: e.x + e.face * 26 * e.sc, z: e.z + e.hz * .78, t: 0, life: .3 }); B.sfx('glint'); }
+  function startWind(e, T) { e.gl = 0; e.st = 'wind'; e.t = 0; e.hit = false; e.vx = 0; e.wdur = T.wind; e.sdur = T.strike; e.rdur = T.rec; e.apose = T.pose || 't'; e.atk = 'melee'; atkers++; }
   function enemyMelee(e, T) {
     const reach = T.reach || 64, x0 = e.x - e.face * 10, x1 = e.x + e.face * reach, lo = Math.min(x0, x1), hi = Math.max(x0, x1);
-    if (hero.x + 18 > lo && hero.x - 18 < hi && zov(e.z, e.z + e.hz, hero.z, hero.z + 120)) hurtHero(e.dmg, e.face, { kb: 240 });
+    if (hero.x + 18 > lo && hero.x - 18 < hi && zov(e.z, e.z + e.hz, hero.z, hero.z + 120)) hurtHero(e.dmg, e.face, { kb: 240, src: e });
     if (e.type === 'brute') { shockRing(e.x + e.face * 90, 105, e.dmg * .7, 260); }
   }
   function aiWalk(e, dt, T) {
@@ -420,7 +542,7 @@
         break;
       }
       case 'runner': {
-        if (ad > 250) e.vx = dir * e.spd; else if (e.cd <= 0 && atkers < tk + 1 && !h.dead) { e.st = 'wind'; e.t = 0; e.vx = 0; e.wdur = .34; e.sdur = 0; e.rdur = .5; e.apose = 't'; e.atk = 'leap'; e.hit = false; atkers++; } else e.vx = dir * e.spd * .55 * (ad < 150 ? -1 : 1);
+        if (ad > 250) e.vx = dir * e.spd; else if (e.cd <= 0 && atkers < tk + 1 && !h.dead) { e.st = 'wind'; e.t = 0; e.vx = 0; e.wdur = .34; e.sdur = 0; e.rdur = .5; e.apose = 't'; e.atk = 'leap'; e.hit = false; e.gl = 0; atkers++; } else e.vx = dir * e.spd * .55 * (ad < 150 ? -1 : 1);
         break;
       }
       case 'archer': {
@@ -452,6 +574,8 @@
       if (e.bt <= 0) { e.bt = .45; const bd = e.burnD || 4; e.hp -= bd; e.flash = .05; addTx(e.x, GY - e.z - e.hz - 10, Math.round(bd), '#ff8a3a', 0, .5); if (e.hp <= 0) { killEnemy(e, -e.face, {}); return; } }
     }
     if (e.sf > 0) e.sf -= dt;
+    if (e.dizzy > 0) e.dizzy -= dt;
+    if (e.frz > 0 && !e.dead) { e.frz -= dt; e.vx = 0; if (e.z > 0 && e.type !== 'heli') { e.vz -= GRAV * dt; e.z = Math.max(0, e.z + e.vz * dt); } if (e.frzK === 'bolt' && Math.random() < .3) sparks(e.x, e.z + rnd(20, e.hz), 1, '#9dffb8'); return; }
     if (e.appear) { if (e.st === 'wind') e.alpha = clamp(e.t / .18, 0, 1); else if (e.st === 'strike' || e.st === 'rec') e.alpha = 1; else { e.appear = false; e.alpha = 1; } }
     if (e.type === 'ogre') return ogreAI(e, dt, T);
     if (e.type === 'samurai') return samuraiAI(e, dt, T);
@@ -461,6 +585,7 @@
       case 'walk': aiWalk(e, dt, T); break;
       case 'wind': {
         e.vx *= Math.pow(.01, dt); if (e.atk !== 'leap' && e.type !== 'archer') e.face = h.x >= e.x ? 1 : -1;
+        if ((e.atk === 'melee' || e.atk === 'leap') && !e.gl && e.t >= e.wdur - .22) { e.gl = 1; glint(e); }
         if (e.t >= e.wdur) {
           if (e.atk === 'melee') { e.st = 'strike'; e.t = 0; enemyMelee(e, T); }
           else if (e.atk === 'leap') { e.st = 'leap'; e.t = 0; e.vz = 430; e.vx = e.face * 500; e.hit = false; }
@@ -473,12 +598,12 @@
         if (e.t >= .34) {
           const side = Math.random() < .6 ? -h.face : h.face; let nx = clamp(h.x + side * 105, cam + 60, cam + B.VW - 60); if (Math.abs(nx - h.x) < 70) nx = clamp(h.x - side * 105, cam + 60, cam + B.VW - 60);
           e.x = nx; e.z = 0; e.vz = 0; e.face = h.x >= nx ? 1 : -1; smoke(e.x, 24, 5); star(e.x, 70, false, '#7de8ff'); B.sfx('swing');
-          e.st = 'wind'; e.t = 0; e.wdur = .34; e.sdur = .14; e.rdur = .6; e.apose = 's1'; e.atk = 'melee'; e.hit = false; e.appear = true; e.alpha = 0; atkers++;
+          e.st = 'wind'; e.t = 0; e.wdur = .34; e.sdur = .14; e.rdur = .6; e.apose = 's1'; e.atk = 'melee'; e.hit = false; e.gl = 0; e.appear = true; e.alpha = 0; atkers++;
         }
         break;
       }
       case 'strike': if (e.t >= (e.sdur || .15)) { e.st = 'rec'; e.t = 0; } break;
-      case 'leap': if (!e.hit && Math.abs(h.x - e.x) < 46 && zov(e.z, e.z + e.hz, h.z, h.z + 120)) { e.hit = true; hurtHero(e.dmg, e.face, { kb: 260 }); } break;
+      case 'leap': if (!e.hit && Math.abs(h.x - e.x) < 46 && zov(e.z, e.z + e.hz, h.z, h.z + 120)) { e.hit = true; hurtHero(e.dmg, e.face, { kb: 260, src: e }); } break;
       case 'rec': e.vx *= Math.pow(.02, dt); if (e.t >= (e.rdur || .5)) { e.st = 'walk'; e.t = 0; e.cd = rnd(.8, 1.8) / (diffM().d > 1.2 ? 1.3 : 1); } break;
       case 'fuse': e.vx = 0; if (e.t > .62) { boom(e.x, e.z, 120, e.dmg, 1); e.hp = 0; e.dead = true; e.gone = true; kills++; coinsAt(e.x, 30, rndi(2, 4), coinVal()); } break;
       case 'hurt': e.vx *= Math.pow(.015, dt); if (e.t > (e.hdur || .28)) { e.st = 'walk'; e.cd = Math.max(e.cd, .35); } break;
@@ -513,11 +638,11 @@
     if (enr && !e.enraged) { e.enraged = true; e.st = 'roar'; e.t = 0; e.vx = 0; B.sfx('roar'); addShake(.7); ring(e.x, 60, 260, '#ff5a5a', .6, 10); banner = { t: 0, a: 'G\'AZABDA!', b: '', life: 1.4, red: true }; cinema(1.3); punch(1.15, 1, e.x, 120); e.ph2Ann = true; spawnEnemy('grunt', -1); spawnEnemy('grunt', 1); e.col = '#3aa86a'; }
     switch (e.st) {
       case 'walk': e.face = dir; e.vx = ad > 150 ? dir * e.spd * (enr ? 1.25 : 1) : 0;
-        if (e.cd <= 0 && !h.dead) { if (ad < 190) { e.st = 'wind'; e.t = 0; e.vx = 0; e.atk = 'slam'; e.wdur = enr ? .65 : .85; e.apose = 's2'; e.hit = false; } else if (ad > 260 && Math.random() < .6) { e.st = 'wind'; e.t = 0; e.vx = 0; e.atk = 'charge'; e.wdur = .6; e.apose = 's1'; } else e.cd = .3; }
+        if (e.cd <= 0 && !h.dead) { if (ad < 190) { e.st = 'wind'; e.t = 0; e.vx = 0; e.atk = 'slam'; e.wdur = enr ? .65 : .85; e.apose = 's2'; e.hit = false; e.gl = 0; } else if (ad > 260 && Math.random() < .6) { e.st = 'wind'; e.t = 0; e.vx = 0; e.atk = 'charge'; e.wdur = .6; e.apose = 's1'; e.gl = 0; } else e.cd = .3; }
         break;
-      case 'wind': e.vx = 0; if (e.t >= e.wdur) { if (e.atk === 'slam') { e.st = 'strike'; e.t = 0; shockRing(e.x + e.face * 120, 165, e.dmg, 330); crack(e.x + e.face * 120, 170); B.sfx('impact'); const x = e.x + e.face * 120; if (Math.abs(h.x - x) < 70 && h.z < 140) hurtHero(e.dmg * .5, e.face, { kb: 260 }); } else { e.st = 'charge'; e.t = 0; e.vx = e.face * 440; e.hit = false; B.sfx('roar'); } } break;
+      case 'wind': e.vx = 0; if (!e.gl && e.t >= e.wdur - .22) { e.gl = 1; glint(e); } if (e.t >= e.wdur) { if (e.atk === 'slam') { e.st = 'strike'; e.t = 0; shockRing(e.x + e.face * 120, 165, e.dmg, 330); crack(e.x + e.face * 120, 170); B.sfx('impact'); const x = e.x + e.face * 120; if (Math.abs(h.x - x) < 70 && h.z < 140) hurtHero(e.dmg * .5, e.face, { kb: 260, src: e }); } else { e.st = 'charge'; e.t = 0; e.vx = e.face * 440; e.hit = false; B.sfx('roar'); } } break;
       case 'strike': if (e.t > .3) { e.st = 'rec'; e.t = 0; e.rdur = enr ? .6 : .95; } break;
-      case 'charge': { e.vx = e.face * 440; if (!e.hit && Math.abs(h.x - e.x) < 62 && h.z < 150) { e.hit = true; hurtHero(e.dmg * 1.1, e.face, { kb: 380, up: 280 }); } if (Math.random() < .5) fx.push({ k: 'dust', x: e.x - e.face * 30, z: 4, vx: -e.face * 60, vz: 40, r: 8, t: 0, life: .4 }); if (e.t > .85 || e.x < cam - 40 || e.x > cam + B.VW + 40) { e.st = 'rec'; e.t = 0; e.rdur = enr ? .7 : 1.0; e.vx = 0; } break; }
+      case 'charge': { e.vx = e.face * 440; if (!e.hit && Math.abs(h.x - e.x) < 62 && h.z < 150) { e.hit = true; hurtHero(e.dmg * 1.1, e.face, { kb: 380, up: 280, src: e }); } if (Math.random() < .5) fx.push({ k: 'dust', x: e.x - e.face * 30, z: 4, vx: -e.face * 60, vz: 40, r: 8, t: 0, life: .4 }); if (e.t > .85 || e.x < cam - 40 || e.x > cam + B.VW + 40) { e.st = 'rec'; e.t = 0; e.rdur = enr ? .7 : 1.0; e.vx = 0; } break; }
       case 'rec': e.vx = 0; if (e.t > e.rdur) { e.st = 'walk'; e.cd = enr ? .6 : 1.2; } break;
       case 'roar': e.vx = 0; if (e.t > 1.1) { e.st = 'walk'; e.cd = .6; } break;
       case 'dead': e.rot = 0; e.vx *= Math.pow(.05, dt); if (e.t > 1.4) e.gone = true; break;
@@ -543,18 +668,19 @@
       case 'walk':
         e.face = dir; e.vx = ad > 125 ? dir * e.spd * (enr ? 1.3 : 1) : 0;
         if (e.cd <= 0 && !h.dead) {
-          if (ad < 195) { e.st = 'combo'; e.cn = 0; e.t = 0; e.vx = 0; e.hit = false; }
+          if (ad < 195) { e.st = 'combo'; e.cn = 0; e.t = 0; e.vx = 0; e.hit = false; e.gl = 0; }
           else if (ad > 230 && Math.random() < .65) { e.st = 'iai'; e.t = 0; e.vx = 0; e.face = dir; B.sfx('warn'); }
           else e.cd = .3;
         }
         break;
       case 'combo':
         e.vx *= Math.pow(.02, dt);
+        if (!e.hit && !e.gl) { e.gl = 1; glint(e); }
         if (!e.hit && e.t >= .2) {
           e.hit = true; e.vx = e.face * 250; B.sfx('swing'); star(e.x + e.face * 90, 90, false, '#ffd0d0');
-          const mid = e.x + e.face * 70; if (Math.abs(h.x - mid) < 95 && h.z < 140) hurtHero(e.dmg, e.face, { kb: 260 });
+          const mid = e.x + e.face * 70; if (Math.abs(h.x - mid) < 95 && h.z < 140) hurtHero(e.dmg, e.face, { kb: 260, src: e });
         }
-        if (e.t >= .46) { e.cn++; if (e.cn >= (enr ? 4 : 3)) { e.st = 'rec'; e.t = 0; e.rdur = enr ? .75 : 1.0; } else { e.t = 0; e.hit = false; e.face = dir; } }
+        if (e.t >= .46) { e.cn++; if (e.cn >= (enr ? 4 : 3)) { e.st = 'rec'; e.t = 0; e.rdur = enr ? .75 : 1.0; } else { e.t = 0; e.hit = false; e.gl = 0; e.face = dir; } }
         break;
       case 'iai':
         e.vx = 0; e.face = dir;
@@ -563,7 +689,7 @@
       case 'dash':
         e.vx = e.face * 980;
         if (Math.random() < .8) fx.push({ k: 'dust', x: e.x - e.face * 30, z: 4, vx: -e.face * 80, vz: 40, r: 9, t: 0, life: .4 });
-        if (!e.hit && Math.abs(h.x - e.x) < 70 && h.z < 140) { e.hit = true; hurtHero(e.dmg * 1.4, e.face, { kb: 380, up: 260 }); star(h.x, h.z + 80, true, '#ffd0d0'); }
+        if (!e.hit && Math.abs(h.x - e.x) < 70 && h.z < 140) { e.hit = true; hurtHero(e.dmg * 1.4, e.face, { kb: 380, up: 260, src: e }); star(h.x, h.z + 80, true, '#ffd0d0'); }
         if (e.t > .42 || e.x < cam + 78 || e.x > cam + B.VW - 78) { e.st = 'rec'; e.t = 0; e.rdur = enr ? .85 : 1.15; e.vx = 0; ring(e.x, 30, 90, '#ffd0d0', .3, 5); }
         break;
       case 'rec': e.vx = 0; if (e.t > e.rdur) { e.st = 'walk'; e.cd = enr ? .5 : 1.0; } break;
@@ -751,6 +877,7 @@
       else if (p.k === 'shock') { if (Math.random() < .6) fx.push({ k: 'dust', x: p.x, z: 4, vx: 0, vz: rnd(20, 80), r: rnd(6, 12), t: 0, life: .4 }); if (Math.abs(hero.x - p.x) < p.r + 20 && hero.z < 46) { if (hurtHero(p.dmg, p.vx > 0 ? 1 : -1, { kb: 300, up: 240 })) { ep.splice(i, 1); continue; } } }
       else if (p.k === 'cannon' || p.k === 'knife' || p.k === 'bullet') {
         if (p.z < 0) { sparks(p.x, 0, 4); ep.splice(i, 1); continue; }
+        if (Math.abs(hero.x - p.x) < p.r + 18 && p.z + p.r > hero.z && p.z - p.r < hero.z + 120 && !hero.dead && p.k === 'knife' && hero.parry > 0 && hero.inv <= 0) { hero.parry = 0; sparks(p.x, p.z, 10, '#fff'); star(p.x, p.z, false, '#dff'); B.sfx('parry'); addWord(hero.x, GY - hero.z - 170, 'QAYTARDI!', '#7fe3ff'); hero.mp = Math.min(hero.maxmp, hero.mp + 6); ep.splice(i, 1); continue; }
         if (Math.abs(hero.x - p.x) < p.r + 18 && p.z + p.r > hero.z && p.z - p.r < hero.z + 120 && !hero.dead) { if (hurtHero(p.dmg, p.vx > 0 ? 1 : -1, { kb: p.k === 'cannon' ? 320 : 180, stun: p.k !== 'bullet' || Math.random() < .3 })) { sparks(p.x, p.z, 6, '#ffb703'); if (p.k === 'cannon') boom(p.x, p.z, 50, 0, 0); ep.splice(i, 1); continue; } }
         if (p.k === 'cannon' && Math.random() < .7) fx.push({ k: 'fire', x: p.x - Math.sign(p.vx) * 14, z: p.z, vx: 0, vz: rnd(-20, 20), r: rnd(6, 12), t: 0, life: .22 });
       }
@@ -814,14 +941,35 @@
       B.comic(c, '!', e.x, GY - 270 - Math.sin(t * 20) * 4, 34, '#ff4d4d', '#2a0000');
     }
     e.t0 = e.t0 || 0;
-    if (e.pk === 'mech') { B.drawMech(c, e, t, e.flash > 0); return; }
-    if (e.pk === 'heli') { B.drawHeli(c, e, t, e.flash > 0); return; }
+    if (e.pk === 'mech') { B.drawMech(c, e, t, e.flash > 0); stFx(e, t); return; }
+    if (e.pk === 'heli') { B.drawHeli(c, e, t, e.flash > 0); stFx(e, t); return; }
     if (e.type === 'hero' && !e.dead && e.hd) {
       if (fury) B.aura(c, e.hd.el === 'fire' ? B.HEROES.quyosh : B.HEROES.alanga, e.x, GY - e.z - 56 * e.sc, t, e.sc / 1.3 * (1.1 + .06 * Math.sin(t * 9)), .85);
       B.aura(c, e.hd, e.x, GY - e.z - 56 * e.sc, t, e.sc / 1.3, e.st === 'skill' ? 1.25 : fury ? 1.2 : .8);
     }
     const was = e.t; e.t = t; // ko'rinish soati
-    B.drawFig(c, e, P, o); e.t = was;
+    B.drawFig(c, e, P, o); e.t = was; stFx(e, t);
+  }
+  function stFx(e, t) {           // muz, chaqmoq, gangish
+    if (e.dead) return;
+    const top = GY - e.z - e.hz - 8, w = e.hw * 2 + 16;
+    if (e.frz > 0 && e.frzK === 'ice') {
+      c.save(); c.globalAlpha = Math.min(1, e.frz * 3) * .8;
+      B.rr(c, e.x - w / 2, top, w, e.hz + 10, 8); c.fillStyle = 'rgba(170,240,255,.38)'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#e4fcff'; c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 2; c.beginPath(); c.moveTo(e.x - w * .3, top + 10); c.lineTo(e.x - w * .1, top + e.hz * .4); c.lineTo(e.x + w * .2, top + e.hz * .3); c.moveTo(e.x + w * .35, top + 6); c.lineTo(e.x + w * .38, top + 30); c.stroke(); c.restore();
+    } else if (e.frz > 0 && e.frzK === 'bolt') {
+      c.save(); c.globalCompositeOperation = 'lighter'; c.strokeStyle = 'rgba(140,255,170,.8)'; c.lineWidth = 2;
+      for (let i = 0; i < 3; i++) { let x = e.x + rnd(-e.hw, e.hw), y = top + rnd(0, e.hz * .3); c.beginPath(); c.moveTo(x, y); for (let j = 0; j < 4; j++) { x += rnd(-14, 14); y += e.hz * .2; c.lineTo(x, y); } c.stroke(); }
+      c.restore();
+    }
+    if (e.dizzy > 0) {
+      c.save(); c.globalAlpha = Math.min(1, e.dizzy * 3);
+      for (let i = 0; i < 3; i++) { const a = t * 6 + i * TAU / 3, sx = e.x + Math.cos(a) * 22 * e.sc, sy = top - 6 + Math.sin(a) * 6; B.comic(c, '★', sx, sy, 16, '#ffd23f', '#5a3a00'); }
+      c.restore();
+    }
+  }
+  function drawGhosts() {
+    ghosts.forEach(g => { const H = g.hd; c.save(); c.globalCompositeOperation = 'lighter'; B.drawFig(c, g, B.poseOf(g), { alpha: Math.max(0, g.a) * .45 }); c.restore(); });
   }
   function drawTrail() {
     c.save(); c.globalCompositeOperation = 'lighter';
@@ -869,6 +1017,9 @@
         case 'ring': { const r = p.r * Math.min(1, p.t / p.life * 1.4 + .1); c.globalAlpha = a; c.strokeStyle = p.col; c.lineWidth = p.w * a + 1; c.beginPath(); c.ellipse(p.x, GY - p.z, r, r * (p.z > 20 ? 1 : .32), 0, 0, TAU); c.stroke(); c.globalAlpha = 1; break; }
         case 'star': { const r = p.r * (.6 + (1 - a) * .7); c.save(); c.translate(p.x, GY - p.z); c.rotate(p.rot); c.globalAlpha = Math.min(1, a * 1.6); c.fillStyle = p.col; c.strokeStyle = '#ff9f1c'; c.lineWidth = 2; c.beginPath(); for (let i = 0; i < 16; i++) { const rr = i % 2 ? r * .42 : r; const an = i / 16 * TAU; c.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } c.closePath(); c.fill(); c.stroke(); c.restore(); c.globalAlpha = 1; break; }
         case 'slash': { const k = p.t / p.life, Ln = p.len * (.4 + .6 * Math.min(1, k * 3)), w = 11 * (1 - k) + 1; c.save(); c.translate(p.x, GY - p.z); c.rotate(p.ang); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 1 - k; c.fillStyle = p.col; c.beginPath(); c.moveTo(-Ln, 0); c.lineTo(0, -w); c.lineTo(Ln, 0); c.lineTo(0, w); c.closePath(); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.moveTo(-Ln * .8, 0); c.lineTo(0, -w * .35); c.lineTo(Ln * .8, 0); c.lineTo(0, w * .35); c.closePath(); c.fill(); c.restore(); c.globalAlpha = 1; break; }
+        case 'glint': { const k = p.t / p.life, r = 30 * Math.sin(k * Math.PI); c.save(); c.translate(p.x, GY - p.z); c.rotate(k * 1.5); c.globalCompositeOperation = 'lighter'; c.fillStyle = '#fff'; c.beginPath(); c.moveTo(0, -r); c.lineTo(r * .14, 0); c.lineTo(0, r); c.lineTo(-r * .14, 0); c.closePath(); c.moveTo(-r, 0); c.lineTo(0, r * .14); c.lineTo(r, 0); c.lineTo(0, -r * .14); c.closePath(); c.fill(); c.fillStyle = 'rgba(255,220,80,.6)'; c.beginPath(); c.arc(0, 0, r * .35, 0, TAU); c.fill(); c.restore(); break; }
+        case 'zap': { const k = p.t / p.life; c.save(); c.globalCompositeOperation = 'lighter'; c.lineJoin = 'round'; c.lineCap = 'round'; c.beginPath(); c.moveTo(p.x1, p.y1); for (let j = 1; j < 8; j++) { const q = j / 8; c.lineTo(p.x1 + (p.x2 - p.x1) * q + rnd(-16, 16), p.y1 + (p.y2 - p.y1) * q + rnd(-16, 16)); } c.lineTo(p.x2, p.y2); c.globalAlpha = 1 - k; c.strokeStyle = '#43ff7a'; c.lineWidth = 10; c.stroke(); c.strokeStyle = '#fff'; c.lineWidth = 3; c.stroke(); c.restore(); break; }
+        case 'pillar': { const k = p.t / p.life, w = (p.kind === 'fire' ? 56 : 64) * (k < .2 ? k / .2 : 1 - (k - .2) * .9); c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createLinearGradient(p.x - w, 0, p.x + w, 0); g.addColorStop(0, B.rgba(p.col, 0)); g.addColorStop(.5, B.rgba(p.col, .9 * (1 - k))); g.addColorStop(1, B.rgba(p.col, 0)); c.fillStyle = g; c.fillRect(p.x - w, -200, w * 2, GY + 210); c.fillStyle = 'rgba(255,255,255,' + (1 - k) + ')'; c.fillRect(p.x - w * .18, -200, w * .36, GY + 210); c.beginPath(); c.ellipse(p.x, GY, w * 1.4, w * .3, 0, 0, TAU); c.fillStyle = B.rgba(p.col, .6 * (1 - k)); c.fill(); c.restore(); break; }
         case 'web': B.drawWeb(c, p.x, GY - p.z, p.t / p.life, p.col, p.seed); break;
         case 'seg': c.globalAlpha = Math.min(1, a * 2); c.lineCap = 'round'; { const mx = (p.x1 + p.x2) / 2, my = (p.y1 + p.y2) / 2; c.save(); c.translate(mx, my); c.rotate(p.rot); c.strokeStyle = p.rim || 'rgba(8,8,16,.9)'; c.lineWidth = p.w + 3; c.beginPath(); c.moveTo(p.x1 - mx, p.y1 - my); c.lineTo(p.x2 - mx, p.y2 - my); c.stroke(); c.strokeStyle = p.col; c.lineWidth = p.w; c.stroke(); c.restore(); } c.globalAlpha = 1; break;
         case 'head': c.globalAlpha = Math.min(1, a * 2); c.fillStyle = p.col; c.strokeStyle = p.rim || 'rgba(8,8,16,.9)'; c.lineWidth = 3; c.beginPath(); c.arc(p.x, p.y, p.r, 0, TAU); c.fill(); c.stroke(); c.globalAlpha = 1; break;
@@ -971,9 +1122,9 @@
     // GO strelka
     if (goT > 0 && Math.floor(t * 3) % 2 === 0) { const gx = VW - 120 - sr + Math.sin(t * 8) * 8; B.comic(c, 'YURING', gx, 250, 30, '#ffd23f', '#1a0f00'); c.fillStyle = '#ffd23f'; c.strokeStyle = '#1a0f00'; c.lineWidth = 5; c.beginPath(); c.moveTo(gx - 30, 280); c.lineTo(gx + 6, 280); c.lineTo(gx + 6, 266); c.lineTo(gx + 40, 296); c.lineTo(gx + 6, 326); c.lineTo(gx + 6, 312); c.lineTo(gx - 30, 312); c.closePath(); c.stroke(); c.fill(); }
     // maslahat
-    if (!endless && li === 0 && time < 14) {
-      const msg = time < 5 ? (B.touch ? '◀ ▶ tugmalar bilan yuring' : 'A D yoki ← → — yuring') : time < 10 ? (B.touch ? 'Qizil tugma — hujum. 3 marta ketma-ket = kombo!' : 'J — hujum (3 marta ketma-ket = kombo), W — sakrash') : (B.touch ? 'Yashil — maxsus zarba, binafsha — dori' : 'L — maxsus zarba, U — dori');
-      c.globalAlpha = clamp(Math.min(time, 14 - time) * 2, 0, 1); B.rr(c, cx0 - 230, 470, 460, 34, 12); c.fillStyle = 'rgba(0,0,0,.6)'; c.fill(); c.font = '700 17px system-ui, sans-serif'; c.fillStyle = '#fff'; c.fillText(msg, cx0, 488); c.globalAlpha = 1;
+    if (!endless && li === 0 && time < 26) {
+      const msg = time >= 14 ? (time < 20 ? 'Kombodan keyin yana bosing — ' + (hero.hd.fn || 'yakunlovchi zarba') + '!' : 'Yugurib hujum — HAMLA · havoda 2 marta — OSMON ZARBASI · yaltiroq paytida hujum — QAYTARISH') : time < 5 ? (B.touch ? '◀ ▶ tugmalar bilan yuring' : 'A D yoki ← → — yuring') : time < 10 ? (B.touch ? 'Qizil tugma — hujum. 3 marta ketma-ket = kombo!' : 'J — hujum (3 marta ketma-ket = kombo), W — sakrash') : (B.touch ? 'Yashil — maxsus zarba, binafsha — dori' : 'L — maxsus zarba, U — dori');
+      c.globalAlpha = clamp(Math.min(time, (time < 14 ? 14 : 26) - time, Math.abs(time - 14) + .3) * 2, 0, 1); const mw = time >= 20 ? 640 : 460; B.rr(c, cx0 - mw / 2, 470, mw, 34, 12); c.fillStyle = 'rgba(0,0,0,.6)'; c.fill(); c.font = '700 17px system-ui, sans-serif'; c.fillStyle = '#fff'; c.fillText(msg, cx0, 488); c.globalAlpha = 1;
     }
     c.restore();
     function bar(x, y, w, hh, p, cols, bg) {
@@ -1046,6 +1197,7 @@
     en.forEach(e => { if (e.pk !== 'heli') B.shadow(c, e.x, e.z, e.hw * 1.5); else B.shadow(c, e.x, e.z * .9, 70, .25); });
     B.shadow(c, hero.x, hero.z, 34);
     en.slice().sort((a, b) => (b.boss ? 1 : 0) - (a.boss ? 1 : 0)).forEach(e => { if (e.x > ct - 260 && e.x < ct + B.VW + 260) drawEnt(e, t); });
+    drawGhosts();
     drawEnt(hero, t);
     drawTrail(); drawProj(t); drawFx(t); drawTx();
     c.restore();

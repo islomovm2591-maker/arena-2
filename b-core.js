@@ -1,6 +1,6 @@
 'use strict';
 // ===== Stickman Jang — yadro: yordamchilar, saqlash, ovoz, boshqaruv, ekran =====
-const B = window.B = { H: 540, VW: 960, S: 1, ox: 0, oy: 0, touch: false, VER: '2.1' };
+const B = window.B = { H: 540, VW: 960, S: 1, ox: 0, oy: 0, touch: false, VER: '2.2' };
 B.clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 B.rnd = (a, b) => a + Math.random() * (b - a);
 B.rndi = (a, b) => Math.floor(B.rnd(a, b + 1));
@@ -75,6 +75,12 @@ B.sfx = n => {
     case 'buy': tone(660, 660, .07, 'square', .15); tone(990, 990, .12, 'square', .15, .07); break;
     case 'warn': tone(220, 220, .18, 'square', .2); tone(220, 220, .18, 'square', .2, .25); break;
     case 'roar': tone(110, 50, .6, 'sawtooth', .5); noise(.5, .4, 300, .5); break;
+    case 'dash': noise(.2, .35, 2200, .5); tone(300, 900, .15, 'sawtooth', .1); break;
+    case 'fin': tone(150, 600, .25, 'sawtooth', .25); noise(.3, .45, 900, .5); tone(80, 40, .4, 'sine', .5, .1); break;
+    case 'parry': tone(1800, 1700, .3, 'triangle', .35); tone(2600, 2500, .2, 'square', .1); noise(.08, .5, 5000, 1.5); break;
+    case 'freeze': tone(2000, 3200, .3, 'triangle', .18); noise(.35, .3, 6000, .8); break;
+    case 'zap': noise(.15, .4, 4000, .3); tone(900, 120, .15, 'sawtooth', .2); break;
+    case 'glint': tone(2400, 2400, .08, 'triangle', .1); break;
     case 'taiko': tone(95, 42, .38, 'sine', .6); noise(.09, .35, 170, .7); break;
     case 'drum': tone(72, 40, .16, 'sine', .32); break;
     case 'heart': tone(62, 40, .12, 'sine', .5); tone(56, 36, .14, 'sine', .38, .17); break;
