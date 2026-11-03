@@ -1,6 +1,6 @@
 'use strict';
 // ===== Stickman Jang — yadro: yordamchilar, saqlash, ovoz, boshqaruv, ekran =====
-const B = window.B = { H: 540, VW: 960, S: 1, ox: 0, oy: 0, touch: false, VER: '2.0' };
+const B = window.B = { H: 540, VW: 960, S: 1, ox: 0, oy: 0, touch: false, VER: '2.1' };
 B.clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 B.rnd = (a, b) => a + Math.random() * (b - a);
 B.rndi = (a, b) => Math.floor(B.rnd(a, b + 1));
@@ -75,6 +75,12 @@ B.sfx = n => {
     case 'buy': tone(660, 660, .07, 'square', .15); tone(990, 990, .12, 'square', .15, .07); break;
     case 'warn': tone(220, 220, .18, 'square', .2); tone(220, 220, .18, 'square', .2, .25); break;
     case 'roar': tone(110, 50, .6, 'sawtooth', .5); noise(.5, .4, 300, .5); break;
+    case 'taiko': tone(95, 42, .38, 'sine', .6); noise(.09, .35, 170, .7); break;
+    case 'drum': tone(72, 40, .16, 'sine', .32); break;
+    case 'heart': tone(62, 40, .12, 'sine', .5); tone(56, 36, .14, 'sine', .38, .17); break;
+    case 'impact': tone(68, 22, .9, 'sine', .7); noise(.55, .5, 110, .5); tone(140, 50, .3, 'sawtooth', .18); break;
+    case 'slash': noise(.09, .32, 3400, 1.2); tone(1700, 480, .07, 'sawtooth', .07); break;
+    case 'tier': [784, 988, 1319].forEach((f, i) => tone(f, f, .14, 'square', .14, i * .07)); noise(.25, .22, 2600, .4); break;
   }
 };
 
