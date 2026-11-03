@@ -5,12 +5,12 @@
 
   // m: o'yin bonuslari (dmg zarba, spd tezlik, hp jon, coin tanga, mpg energiya yig'ish, sk maxsus zarba narxi, atk hujum davomiyligi)
   B.HEROES = {
-    muz: { n: 'Muz', t: 'Muzlik jangchisi', el: 'ice', col: '#4fe8ff', lite: '#e4fcff', acc: '#ff4d7a', price: 0, gem: 0, bg: ['#030d14', '#08323f', '#14788f'], perk: 'Tez qo\'l: hujum 8% tezroq', m: { atk: .92 } },
-    alanga: { n: 'Alanga', t: 'Olov o\'roqchisi', el: 'fire', col: '#ff5a3a', lite: '#ffe2b0', acc: '#ffe27a', price: 800, gem: 0, bg: ['#1a0602', '#5a1a06', '#c8741a'], perk: '+15% zarba kuchi', m: { dmg: 1.15 } },
-    chaqmoq: { n: 'Chaqmoq', t: 'Bo\'ron ustasi', el: 'bolt', col: '#43ff7a', lite: '#e0ffe9', acc: '#0b3a1a', price: 1800, gem: 0, bg: ['#020d06', '#073a22', '#12905a'], perk: '+10% tezlik, energiya tez to\'ladi', m: { spd: 1.1, mpg: 1.4 } },
-    quyosh: { n: 'Quyosh', t: 'Oltin himoyachi', el: 'gold', col: '#ffd23f', lite: '#fff6c8', acc: '#d62839', price: 3200, gem: 0, bg: ['#140c02', '#4a2e08', '#b9801a'], perk: '+20% jon, +15% tanga', m: { hp: 1.2, coin: 1.15 } },
-    sehr: { n: 'Sehr', t: 'Soya sehrgari', el: 'arcane', col: '#d36bff', lite: '#f8e2ff', acc: '#4cd9ff', price: 0, gem: 20, bg: ['#0a0212', '#31105a', '#7a2fc0'], perk: 'Maxsus zarba 20% arzon', m: { sk: .8 } },
-    farishta: { n: 'Farishta', t: 'Nur elchisi', el: 'halo', col: '#fff0a0', lite: '#ffffff', acc: '#ffd23f', price: 0, gem: 40, band: false, bg: ['#0f0d06', '#3e3615', '#a8993f'], perk: '+10% zarba, +10% jon, +5% tezlik', m: { dmg: 1.1, hp: 1.1, spd: 1.05 } }
+    muz: { n: 'Muz', t: 'Muzlik jangchisi', el: 'ice', col: '#4fe8ff', lite: '#e4fcff', acc: '#ff4d7a', price: 0, gem: 0, bg: ['#030d14', '#08323f', '#14788f'], perk: 'Tez qo\'l: hujum 8% tezroq', fn: 'MUZ QAFAS', fd: 'dushmanlarni muzlatadi', m: { atk: .92 } },
+    alanga: { n: 'Alanga', t: 'Olov o\'roqchisi', el: 'fire', col: '#ff5a3a', lite: '#ffe2b0', acc: '#ffe27a', price: 800, gem: 0, bg: ['#1a0602', '#5a1a06', '#c8741a'], perk: '+15% zarba kuchi', fn: 'OLOV TO\'FONI', fd: 'yerdan olov ustunlari otiladi', m: { dmg: 1.15 } },
+    chaqmoq: { n: 'Chaqmoq', t: 'Bo\'ron ustasi', el: 'bolt', col: '#43ff7a', lite: '#e0ffe9', acc: '#0b3a1a', price: 1800, gem: 0, bg: ['#020d06', '#073a22', '#12905a'], perk: '+10% tezlik, energiya tez to\'ladi', fn: 'CHAQMOQ ZANJIRI', fd: 'chaqmoq 6 ta dushmanga sakraydi', m: { spd: 1.1, mpg: 1.4 } },
+    quyosh: { n: 'Quyosh', t: 'Oltin himoyachi', el: 'gold', col: '#ffd23f', lite: '#fff6c8', acc: '#d62839', price: 3200, gem: 0, bg: ['#140c02', '#4a2e08', '#b9801a'], perk: '+20% jon, +15% tanga', fn: 'OLTIN ZILZILA', fd: 'ikki tomonga oltin to\'lqin', m: { hp: 1.2, coin: 1.15 } },
+    sehr: { n: 'Sehr', t: 'Soya sehrgari', el: 'arcane', col: '#d36bff', lite: '#f8e2ff', acc: '#4cd9ff', price: 0, gem: 20, bg: ['#0a0212', '#31105a', '#7a2fc0'], perk: 'Maxsus zarba 20% arzon', fn: 'SOYA QADAMI', fd: 'dushmanlar orasidan uchib o\'tib kesadi', m: { sk: .8 } },
+    farishta: { n: 'Farishta', t: 'Nur elchisi', el: 'halo', col: '#fff0a0', lite: '#ffffff', acc: '#ffd23f', price: 0, gem: 40, band: false, bg: ['#0f0d06', '#3e3615', '#a8993f'], perk: '+10% zarba, +10% jon, +5% tezlik', fn: 'NUR USTUNLARI', fd: 'osmondan nur ustunlari tushadi', m: { dmg: 1.1, hp: 1.1, spd: 1.05 } }
   };
   B.HORDER = ['muz', 'alanga', 'chaqmoq', 'quyosh', 'sehr', 'farishta'];
   B.heroDef = id => B.HEROES[id || (B.S0 && B.S0.hero)] || B.HEROES.muz;
