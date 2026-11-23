@@ -26,8 +26,9 @@
       const a = g.attributes.position.array, H = o.y[1] - o.y[0];
       if (last == null) for (let i = 0; i < n; i++) a[i * 3] += cx;   // birinchi kadr: kamera atrofiga joylash
       last = t;
+      const vx = typeof o.vx === 'function' ? o.vx() : (o.vx || 0);
       for (let i = 0; i < n; i++) {
-        let x = a[i * 3] + ((o.vx || 0) + (o.sway ? Math.sin(t * 1.3 + ph[i]) * o.sway : 0)) * dt, y = a[i * 3 + 1] + (o.vy || 0) * dt;
+        let x = a[i * 3] + (vx + (o.sway ? Math.sin(t * 1.3 + ph[i]) * o.sway : 0)) * dt, y = a[i * 3 + 1] + (o.vy || 0) * dt;
         // kameradan uzoqlashsa qarama-qarshi tomonga o'tkaziladi
         const rx = x - cx; if (rx < -W) x += 2 * W; else if (rx > W) x -= 2 * W;
         if (y < o.y[0]) y += H; else if (y > o.y[1]) y -= H;
@@ -228,6 +229,9 @@
       particles(A, { n: 60, col: '#ff8a2a', size: 6, add: true, y: [60, 600], z: [-240, 100], vy: 70, sway: 20 });
     }
   };
+
+  // boshqa fayllar (b-3d-maps2.js) uchun
+  G3.mapUtil = { particles, decal, beacon, dot, pick };
 
   // ---------- Kayfiyat: qizil signal va quyosh botishi ----------
   X.mood = (A, x0, x1, L) => {

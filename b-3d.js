@@ -230,17 +230,17 @@
     sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -900, right: 900, top: 700, bottom: -300, near: 10, far: 2600 });
     sun.shadow.bias = -.002; scene.add(sun); scene.add(sun.target);
     alarmL = null;
-    const len = L.len || 3000, fn = TH[L.bg] || TH.room;
+    const len = L.len || 3000, x0 = -1200, x1 = len + 1600;
     sunOff.set(-500, 1400, 900);
-    fn(-1200, len + 1600, L);
+    // b-3d-maps.js uchun yordamchilar to'plami
+    const api = { T, root, scene, hemi, sun, sunOff, anims, box, cyl, sph, plane, mesh, lam, glow, canvasTex, sr, srr, boxG, cylG, sphG, plG, len,
+      floor, wall, sky, facade, floorTex, stars, skyline, L };
+    const X = G3.extra || {}, TX = G3.themes || {};
+    if (TH[L.bg]) TH[L.bg](x0, x1, L); else if (TX[L.bg]) TX[L.bg](api, x0, x1, L); else TH.room(x0, x1, L);
     if (L.alarm) { alarmL = new T.AmbientLight(0xff2020, 0); scene.add(alarmL); }
     // qo'shimcha detallar va kayfiyat (b-3d-maps.js)
-    const X = G3.extra;
-    if (X) {
-      const api = { T, root, scene, hemi, sun, sunOff, anims, box, cyl, sph, plane, mesh, lam, glow, canvasTex, sr, srr, boxG, cylG, sphG, plG, len };
-      if (X[L.bg]) X[L.bg](api, -1200, len + 1600, L);
-      if (X.mood) X.mood(api, -1200, len + 1600, L);
-    }
+    if (X[L.bg]) X[L.bg](api, x0, x1, L);
+    if (X.mood) X.mood(api, x0, x1, L);
   }
   const sunOff = new T.Vector3(-500, 1400, 900);
 
@@ -255,6 +255,7 @@
     zm = zm || 1;
     const qx = (sx || 0) + (VW / 2 - shx - (sx || 0)) / zm, qy = (sy || 0) + (270 - shy - (sy || 0)) / zm;
     camera.position.set(cam + qx, GY - qy, D / zm);
+    const hz = B.hazInfo && B.hazInfo(); camera.rotation.z = hz && hz.sway ? hz.sway : 0;
     const cx = cam + VW / 2;
     sun.position.set(cx + sunOff.x, sunOff.y, sunOff.z); sun.target.position.set(cx, 0, -200);
     if (alarmL) alarmL.intensity = .4 + .35 * Math.sin(t * 6);

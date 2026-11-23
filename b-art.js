@@ -487,7 +487,9 @@
   const TW = 960;
   let bgd = null;
   const rng = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const BGA = { ice: 'night', volcano: 'factory', desert: 'roof', train: 'street', ship: 'roof', neon: 'night' };   // yangi xaritalar uchun 2D o'xshashi
   B.bgInit = kind => {
+    kind = BGA[kind] || kind;
     bgd = { kind };
     const r = rng(kind === 'roof' ? 77 : kind === 'street' ? 31 : 11);
     const sky = (n, minH, maxH, wmin, wmax) => { const a = []; let x = 0; while (x < TW) { const w = wmin + r() * (wmax - wmin), h = minH + r() * (maxH - minH); a.push({ x, w, h, ant: r() < .3, win: Math.floor(r() * 3) }); x += w - 2; } return a; };
@@ -796,7 +798,8 @@
     if (o && o.alarm) { const a = .08 + .08 * Math.sin(t * 4); c.fillStyle = 'rgba(255,20,20,' + a + ')'; c.fillRect(0, 0, VW, 540); }
   };
 
-  B.drawBG = (c, kind, cam, t, o) => { if (!bgd || bgd.kind !== kind) B.bgInit(kind); BG[kind](c, cam, t, o || {}); };
+  B.drawBG = (c, kind, cam, t, o) => {
+    kind = BGA[kind] || kind; if (!bgd || bgd.kind !== kind) B.bgInit(kind); BG[kind](c, cam, t, o || {}); };
   B.vignette = (c) => {
     const VW = B.VW, g = c.createRadialGradient(VW / 2, 270, 220, VW / 2, 270, VW * .62);
     g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.38)'); c.fillStyle = g; c.fillRect(0, 0, VW, 540);

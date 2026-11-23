@@ -47,9 +47,26 @@
     { n: 'Dojo', bg: 'dojo', par: 370, crates: [420, 1050, 1700, 2350, 3000], encs: [
       { x: 650, w: [[...R('ninja', 4)]] }, { x: 1250, w: [[...R('shield', 2), ...R('ninja', 3)]] }, { x: 1900, w: [[...R('brute', 2), ...R('archer', 3)], [...R('bomber', 4), 'ninja']] }, { x: 2700, w: [['samurai']], boss: true }] },
     { n: "Imperator qal'asi", bg: 'dojo', alarm: true, par: 430, crates: [420, 1050, 1700, 2350, 3000, 3600], encs: [
-      { x: 650, w: [[...R('ninja', 3), ...R('shield', 2)]] }, { x: 1250, w: [[...R('brute', 3), ...R('bomber', 3)], [...R('ninja', 4), ...R('runner', 3)]] }, { x: 1900, w: [['ogre', ...R('shield', 2)]], boss: true }, { x: 2750, w: [['samurai'], ['mech', ...R('ninja', 2)]], boss: true }] }
+      { x: 650, w: [[...R('ninja', 3), ...R('shield', 2)]] }, { x: 1250, w: [[...R('brute', 3), ...R('bomber', 3)], [...R('ninja', 4), ...R('runner', 3)]] }, { x: 1900, w: [['ogre', ...R('shield', 2)]], boss: true }, { x: 2750, w: [['samurai'], ['mech', ...R('ninja', 2)]], boss: true }] },
+    // ----- 3D versiyadagi yangi xaritalar -----
+    { n: "Muzlik g'ori", bg: 'ice', haz: 'ice', par: 380, crates: [420, 1050, 1700, 2350, 3000], encs: [
+      { x: 650, w: [[...R('runner', 3), ...R('archer', 2)]] }, { x: 1250, w: [[...R('shield', 2), ...R('ninja', 2)], [...R('brute', 2)]] }, { x: 1900, w: [[...R('bomber', 3), ...R('runner', 3)], ['brute', ...R('archer', 3)]] }, { x: 2650, w: [['ogre', ...R('runner', 2)]], boss: true }] },
+    { n: 'Vulqon', bg: 'volcano', haz: 'lava', par: 400, crates: [400, 1000, 1650, 2300, 2950], encs: [
+      { x: 650, w: [[...R('grunt', 4), ...R('bomber', 2)]] }, { x: 1250, w: [[...R('brute', 2), ...R('archer', 2)], [...R('ninja', 3)]] }, { x: 1900, w: [[...R('shield', 3), ...R('bomber', 3)], [...R('runner', 4)]] }, { x: 2650, w: [['mech', ...R('bomber', 2)]], boss: true }] },
+    { n: "Cho'l xarobalari", bg: 'desert', haz: 'sand', par: 410, crates: [420, 1050, 1700, 2350, 3000], encs: [
+      { x: 650, w: [[...R('archer', 3), ...R('runner', 2)]] }, { x: 1250, w: [[...R('brute', 2), ...R('ninja', 2)], [...R('archer', 3)]] }, { x: 1900, w: [['ogre']], boss: true }, { x: 2650, w: [['heli', ...R('archer', 2)]], boss: true }] },
+    { n: 'Metro poyezdi', bg: 'train', haz: 'wind', par: 420, crates: [400, 1050, 1700, 2350, 3000], encs: [
+      { x: 650, w: [[...R('ninja', 3), ...R('runner', 2)]] }, { x: 1250, w: [[...R('shield', 2), ...R('bomber', 3)], [...R('ninja', 3)]] }, { x: 1900, w: [[...R('brute', 2), ...R('archer', 3)], [...R('runner', 4), 'shield']] }, { x: 2700, w: [['samurai', ...R('ninja', 2)]], boss: true }] },
+    { n: 'Kema palubasi', bg: 'ship', haz: 'sway', par: 440, crates: [420, 1050, 1700, 2350, 3000, 3600], encs: [
+      { x: 650, w: [[...R('grunt', 4), ...R('archer', 2)]] }, { x: 1250, w: [[...R('brute', 3)], [...R('bomber', 4), ...R('ninja', 2)]] }, { x: 1900, w: [['ogre', ...R('shield', 2)]], boss: true }, { x: 2750, w: [['heli'], ['mech', ...R('runner', 3)]], boss: true }] },
+    { n: 'Neon arena', bg: 'neon', par: 520, crates: [420, 1050, 1700, 2350, 3000, 3600], encs: [
+      { x: 650, w: [[...R('ninja', 4), ...R('shield', 2)], [...R('brute', 2), ...R('archer', 3)]] }, { x: 1300, w: [['ogre'], ['mech']], boss: true }, { x: 2000, w: [['heli', ...R('bomber', 3)]], boss: true }, { x: 2750, w: [['samurai', ...R('ninja', 3)]], boss: true }] }
   ];
   B.LV = LV;
+  // eski saqlanmalar: 10-levelni o'tganlar uchun yangi levellar ochiladi
+  { const s = B.S0; let m = 1; for (const k in s.stars) if (s.stars[k] > 0) m = Math.max(m, +k + 2); s.unl = Math.min(LV.length, Math.max(s.unl || 1, m)); }
+  // lava otqinlari joylari (3D xarita ham shu nuqtalarda yoriqlar chizadi)
+  B.geyserX = L => { const a = []; for (let x = 520; x < (L.len || 3000) - 250; x += 560) a.push(x); return a; };
 
   // ---------- Holat ----------
   let hero, en, items, pr, ep, fx, tx, crates, stains, trail;
@@ -58,6 +75,8 @@
   // ---------- Kinematik effektlar (zum, kino-chiziqlar, tezlik chiziqlari, jazava, yoriqlar, boss barabani) ----------
   let zoom = 1, zTgt = 1, zHold = 0, zfx = 0, zfy = 0, cine = 0, cineHold = 0, lines = 0, linesCol = '#fff', fury = false, furyT = 0, tier = 0;
   let ghosts = [], ghT = 0;
+  let hz = { t: 0, storm: 0, sdir: 1, sway: 0, gey: [] };
+  B.hazInfo = () => hz;
   let cracks = [], embers = [], chip = 1, chipD = 0, beatT = 0, beatN = 0, heartT = 0, redA = 0;
   function punch(z, hold, wx, wz) { if (z >= zTgt || zHold <= 0) { zTgt = z; zHold = hold; zfx = wx; zfy = wz; } }
   function cinema(hold) { cineHold = Math.max(cineHold, hold); }
@@ -124,8 +143,9 @@
     if (endless) { L.len = Math.max(B.VW, 1100); camLock = (L.len - B.VW) / 2; cam = camLock; hero.x = L.len / 2 - 150; startEndlessWave(); }
     else {
       L.len = L.encs[L.encs.length - 1].x + B.VW / 2 + 300;
-      L.crates.forEach(x => crates.push({ x, hp: 1, k: (L.bg === 'lab' || L.bg === 'roof' || L.bg === 'factory') ? 'barrel' : 'crate', sh: 0 }));
+      L.crates.forEach(x => crates.push({ x, hp: 1, k: ['lab', 'roof', 'factory', 'volcano', 'train', 'neon'].includes(L.bg) ? 'barrel' : 'crate', sh: 0 }));
     }
+    hz = { t: 0, storm: 0, sdir: 1, sway: 0, gey: !endless && L.haz === 'lava' ? B.geyserX(L).map(x => ({ x, t: rnd(1.5, 4.5), ph: 0 })) : [] };
     sch.length = 0; B.bgInit(L.bg); G.mode = 'play'; G.paused = false; G.ended = false; G.result = null;
     banner = { t: 0, a: endless ? 'CHEKSIZ JANG' : 'LEVEL ' + (li + 1), b: endless ? 'Qancha chidaysiz?' : L.n, life: 2.4 };
     B.clearInput(); B.persist();
@@ -434,7 +454,7 @@
     if (h.dead) { h.vx *= Math.pow(.02, dt); h.rot += (h.spin || 0) * dt; }
     else switch (h.st) {
       case 'idle': case 'run': {
-        const tv = dir * SPD; h.vx += clamp(tv - h.vx, -dt * 2600, dt * 2600);
+        const tv = dir * SPD, acc = L.haz === 'ice' && ground ? 620 : 2600; h.vx += clamp(tv - h.vx, -dt * acc, dt * acc);   // muzda sirpanadi
         if (dir) h.face = dir;
         if (ground && dir && Math.abs(h.vx) > SPD * .8) h.runT += dt; else h.runT = 0;
         if (h.jbuf > 0 && ground) { h.vz = JUMPV; h.jbuf = 0; B.sfx('jump'); for (let i = 0; i < 5; i++) fx.push({ k: 'dust', x: h.x + rnd(-14, 14), z: 2, vx: rnd(-60, 60), vz: rnd(20, 70), r: rnd(4, 8), t: 0, life: .4 }); }
@@ -817,6 +837,40 @@
   }
 
   // ---------- Asosiy yangilash ----------
+  // ---------- Xarita xavflari: muz, lava, qum bo'roni, shamol, chayqalish ----------
+  function hazUpdate(dt) {
+    if (endless || !L.haz) return;
+    hz.t += dt; const H = L.haz;
+    const push = v => {
+      if (!hero.dead) hero.x += v * dt;
+      en.forEach(e => { if (!e.dead && !e.boss && e.z < 5) e.x += v * dt * .8; });
+    };
+    if (H === 'lava') hz.gey.forEach(g => {
+      g.t -= dt;
+      if (g.ph === 0 && g.t <= 1.1) g.ph = 1;                                   // ogohlantirish: uchqun va tutun
+      if (g.ph === 1) {
+        if (Math.random() < dt * 16) fx.push({ k: 'spark', x: g.x + rnd(-30, 30), z: 2, vx: rnd(-40, 40), vz: rnd(80, 220), t: 0, life: .4, col: '#ff6a1f' });
+        if (Math.random() < dt * 5) smoke(g.x, 4, 1);
+      }
+      if (g.t <= 0) {                                                           // otilish
+        g.ph = 0; g.t = rnd(3.5, 6);
+        fx.push({ k: 'pillar', x: g.x, kind: 'fire', col: '#ff5a1f', t: 0, life: .7 }); ring(g.x, 6, 90, '#ff7a1f', .4, 7);
+        for (let i = 0; i < 10; i++) fx.push({ k: 'fire', x: g.x + rnd(-24, 24), z: rnd(0, 80), vx: rnd(-80, 80), vz: rnd(250, 650), r: rnd(8, 16), t: 0, life: rnd(.3, .6) });
+        if (Math.abs(g.x - (cam + B.VW / 2)) < B.VW) { B.sfx('boom'); addShake(.25); }
+        if (!hero.dead && Math.abs(hero.x - g.x) < 60 && hero.z < 170) hurtHero(12 * lvM().d * diffM().d, hero.x >= g.x ? 1 : -1, { kb: 260, up: 420 });
+        en.forEach(e => { if (!e.dead && !e.boss && Math.abs(e.x - g.x) < 50 + e.hw && e.z < 170) hitEnemy(e, 40, e.x >= g.x ? 1 : -1, { kb: 200, heavy: true, down: true }); });
+      }
+    });
+    if (H === 'sand') {                                                         // har 15 soniyada 5 soniyalik bo'ron
+      const c = hz.t % 15, tg = c > 9 && c < 14 ? 1 : 0;
+      if (c < dt) hz.sdir = Math.random() < .5 ? -1 : 1;
+      hz.storm += (tg - hz.storm) * Math.min(1, dt * 1.5);
+      push(hz.storm * 75 * hz.sdir);
+      if (hz.storm > .25 && Math.random() < dt * 40 * hz.storm) fx.push({ k: 'dust', x: cam + rnd(-100, B.VW + 100), z: rnd(0, 320), vx: hz.sdir * rnd(320, 520), vz: rnd(-20, 20), r: rnd(3, 7), t: 0, life: .9 });
+    }
+    if (H === 'wind') { push(-36); if (Math.random() < dt * 6) fx.push({ k: 'dust', x: cam + B.VW + 20, z: rnd(0, 300), vx: -rnd(500, 800), vz: 0, r: rnd(2, 4), t: 0, life: 1.4 }); }
+    if (H === 'sway') { hz.sway = Math.sin(hz.t * .9) * .035; push(hz.sway * 1400); }
+  }
   function update(dtR) {
     camFx(dtR);
     if (hitstop > 0) { hitstop -= dtR; return; }
@@ -826,6 +880,7 @@
     // rejalashtirilgan ishlar
     for (let i = sch.length - 1; i >= 0; i--) { sch[i].t -= dt; if (sch[i].t <= 0) { const f = sch[i].fn; sch.splice(i, 1); f(); } }
     heroUpdate(dt);
+    hazUpdate(dt);
     atkers = 0; en.forEach(e => { if (e.st === 'wind' || e.st === 'strike') atkers++; });
     en.forEach(e => enemyUpdate(e, dt));
     en.forEach(e => { if (e.boss && e.type !== 'heli' && !e.dead) { const bd = band(), lo = bd[0], hi = bd[1]; if (e.x > lo && e.x < hi) e.entered = true; if (e.entered) e.x = clamp(e.x, lo, hi); } });
@@ -1170,6 +1225,7 @@
   }
   function drawOverlay(t) {
     const VW = B.VW;
+    if (hz.storm > .02) { c.fillStyle = 'rgba(214,170,110,' + (hz.storm * .45) + ')'; c.fillRect(0, 0, VW, 540); }
     // uchqunlar (boss jangi / jazava)
     if (embers.length) { c.save(); c.globalCompositeOperation = 'lighter'; embers.forEach(p => { c.globalAlpha = Math.sin(Math.min(1, p.t / p.life) * Math.PI) * .9; c.fillStyle = p.col; c.beginPath(); c.arc(p.x, p.y, p.r, 0, TAU); c.fill(); }); c.restore(); }
     // zarba olganda qizil chegara
@@ -1194,6 +1250,7 @@
     if (!inGame) { renderMenuScene(t); c.restore(); return; }
     let shx = 0, shy = 0, zsx = 0, zsy = 0, zm = 1;
     if (shake > 0) { shx = rnd(-1, 1) * shake * 12; shy = rnd(-1, 1) * shake * 10; c.translate(shx, shy); }
+    if (hz.sway) { c.translate(B.VW / 2, 270); c.rotate(hz.sway); c.translate(-B.VW / 2, -270); }
     const tt = time, ct = cam;
     if (zoom > 1.001) { const sx = clamp(zfx - ct, B.VW * .25, B.VW * .75), sy = clamp(GY - zfy, 200, 400); zsx = sx; zsy = sy; zm = zoom; c.translate(sx, sy); c.scale(zoom, zoom); c.translate(-sx, -sy); }
     if (g3) B.g3.frame(ct, t, L, shx, shy, zm, zsx, zsy); else B.drawBG(c, L.bg, ct, t, L);

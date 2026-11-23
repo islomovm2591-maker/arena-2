@@ -139,6 +139,12 @@ body.portrait #rot{display:flex}
 .lv.bg-factory{background:linear-gradient(135deg,#ffb04a,#6b3a1a)}
 .lv.bg-night{background:linear-gradient(135deg,#7a5cff,#0d0f2e)}
 .lv.bg-dojo{background:linear-gradient(135deg,#ff7b7b,#3a0f1a)}
+.lv.bg-ice{background:linear-gradient(135deg,#bff4ff,#2a6b9a)}
+.lv.bg-volcano{background:linear-gradient(135deg,#ffb03a,#5a0f0a)}
+.lv.bg-desert{background:linear-gradient(135deg,#ffe0a0,#b0703a)}
+.lv.bg-train{background:linear-gradient(135deg,#9aa8c8,#2a2f48)}
+.lv.bg-ship{background:linear-gradient(135deg,#8fd6ff,#1a4a7a)}
+.lv.bg-neon{background:linear-gradient(135deg,#ff4dd2,#2a0a5a)}
 
 /* =====================================================================
    Stickman Jang 2 — yangi uslub: neon, qiyshiq "slab" tugmalar, katta menyu
