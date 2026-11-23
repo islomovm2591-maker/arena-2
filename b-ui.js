@@ -12,6 +12,7 @@
   };
   const pills = () => '<span class="pill">' + ICO.coin + B.fmt(S().coins) + '</span><span class="pill g">' + ICO.gem + B.fmt(S().gems) + '</span>';
 
+  B.onQDown = n => toast('🎨 Grafika sifati: ' + n + ' (tezlik uchun)');
   function toast(t) {
     let el = document.getElementById('toast'); if (!el) { el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
     el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1700);
@@ -242,6 +243,8 @@
     setOv('<div class="top"><button class="bt sm gray" data-a="' + (from === 'pause' ? 'pausebk' : 'main') + '">⬅ Orqaga</button><div class="row" style="gap:6px">' + pills() + '</div></div>' +
       '<div class="screen"><div class="banner"><span>Sozlamalar</span></div><div class="panel" style="display:flex;flex-direction:column;gap:calc(var(--u)*8);align-items:center">' +
       tog('snd', '🔊 Ovoz') + tog('vib', '📳 Tebranish') + tog('blood', '🩸 Qon') +
+      (B.g3.ok ? tog('g3', '🧊 3D grafika') : '<div class="tog"><span>🧊 3D grafika</span><span>bu qurilmada yo' + "'" + 'q</span></div>') +
+      (B.g3.ok && s.set.g3 !== 0 ? '<div class="tog"><span>🎨 Sifat' + (B.g3.qAuto() ? ' <small style="opacity:.7">(' + B.g3.Q().n + ')</small>' : '') + '</span><div class="chips">' + [[-1, 'Avto'], [0, 'Past'], [1, "O'rta"], [2, 'Yuqori']].map(q => '<button class="bt sm ' + ((s.set.gq == null ? -1 : s.set.gq) === q[0] ? 'green' : 'gray') + '" data-a="gq" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div></div>' : '') +
       '<div class="tog"><span>🎚 Qiyinlik</span><div class="chips">' + ['Oson', 'Oddiy', 'Qiyin'].map((n, i) => '<button class="bt sm ' + (s.diff === i ? 'green' : 'gray') + '" data-a="diff2" data-v="' + i + '">' + n + '</button>').join('') + '</div></div></div>' +
       '<div class="row"><button class="bt sm blue" data-a="offhelp">📶 Offline yordam</button><button class="bt sm gray" data-a="help">❓ Boshqaruv</button><button class="bt sm gray" data-a="fs">⛶ To\'liq ekran</button><button class="bt sm red" data-a="reset">' + (confirmReset ? 'Rostdan o\'chirilsinmi?' : '🗑 Progressni o\'chirish') + '</button></div></div>', 'dim2');
   }
@@ -270,6 +273,7 @@
       case 'lv': startGame(+v, false); break;
       case 'diff': s.diff = +v; B.persist(); showLevels(); break;
       case 'diff2': s.diff = +v; B.persist(); showSettings(); break;
+      case 'gq': s.set.gq = +v; B.persist(); if (B.g3.setQ) B.g3.setQ(); showSettings(); break;
       case 'endless': startGame(0, true); break;
       case 'shop': if (B.G.mode === 'menu' || from === 'levels') from = 'main'; showShop(); break;
       case 'tab': showShop(v); break;

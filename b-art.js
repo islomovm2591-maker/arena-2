@@ -284,8 +284,13 @@
       decor(c, f, S, t, o);
       seg([S.sx, S.sy, S.elbF[0], S.elbF[1], S.handF[0], S.handF[1]], lw, dk);
     }
-    // qurol (old qo'lda)
-    const wk = f.wep;
+    drawWep(c, f, S, t);
+    c.restore();
+    return S;
+  };
+  // qurol (old qo'lda)
+  function drawWep(c, f, S, t) {
+    const wk = f.wep, sc = f.sc, fc = f.face, hero = f.type === 'hero';
     if (wk && f.pk !== 'down') {
       c.save(); c.translate(S.handF[0], S.handF[1]); c.rotate(Math.atan2(S.wd[1], S.wd[0])); if (fc < 0) c.scale(1, -1);
       const wl = (wk === 'club' ? 96 : wk === 'knife' ? 28 : (B.W[wk] ? B.W[wk].len : 60));
@@ -293,6 +298,17 @@
       if (wk === 'bow') drawBow(c, f.pu || 0, f.pk === 'arch'); else B.weaponDraw(c, wk, wl, t);
       c.restore();
     }
+  }
+  // 3D rejimi: tana va qurol 3D'da (b-3d-fig.js, b-3d-wep.js), bu yerda faqat yuz detallari 2D'da ustidan chiziladi
+  B.drawFigOverlay = (c, f, P, o) => {
+    o = Object.assign({}, o, { g3: true });
+    const lying = f.pk === 'down', S = B.skel(f, P, lying), sc = f.sc, fc = f.face, t = f.t || 0;
+    c.save();
+    if (o.alpha != null) c.globalAlpha = o.alpha;
+    if (lying || f.rot) { const r = f.rot != null ? f.rot : -1.5 * fc; c.translate(S.hx, S.hy); c.rotate(r); c.translate(-S.hx, -S.hy); }
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    decor(c, f, S, t, o);
+    if (!B.g3.wepUpd) drawWep(c, f, S, t);
     c.restore();
     return S;
   };
@@ -311,7 +327,7 @@
       const H = f.hd || B.HEROES.muz, fl = !!o.flash, top = y - 8 * sc;
       // element belgisi: bosh ustida (olov, shox, toj, muz toji, nur halqasi)
       const spike = (bx, by, dx, len, wid, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(bx - wid, by); c.lineTo(bx + dx * len * .5, by - len); c.lineTo(bx + wid, by); c.closePath(); c.fill(); };
-      if (H.el === 'fire') { for (let i = -1; i <= 1; i++) spike(x + i * 6 * sc, top + 2 * sc, -fc * .25 + i * .15, (14 + 6 * Math.sin(t * 9 + i * 2) + (i === 0 ? 8 : 0)) * sc, 4.4 * sc, fl ? '#fff' : (i === 0 ? '#ffd24a' : '#ff8a2a')); }
+      if (o.g3) { } else if (H.el === 'fire') { for (let i = -1; i <= 1; i++) spike(x + i * 6 * sc, top + 2 * sc, -fc * .25 + i * .15, (14 + 6 * Math.sin(t * 9 + i * 2) + (i === 0 ? 8 : 0)) * sc, 4.4 * sc, fl ? '#fff' : (i === 0 ? '#ffd24a' : '#ff8a2a')); }
       else if (H.el === 'bolt') { for (let i = 0; i < 4; i++) spike(x - fc * (i * 3.4 - 2) * sc, top + 1 * sc, -fc * 1.1, (13 - i * 1.5) * sc, 3.4 * sc, fl ? '#fff' : shade(H.col, -.55)); }
       else if (H.el === 'gold') { for (let i = -1; i <= 1; i++) spike(x + i * 6.4 * sc, top + 2 * sc, 0, (i === 0 ? 14 : 10) * sc, 3.2 * sc, fl ? '#fff' : '#fff2a8'); }
       else if (H.el === 'ice') { spike(x, top + 2 * sc, 0, 19 * sc, 4 * sc, fl ? '#fff' : H.lite); spike(x - fc * 6 * sc, top + 3 * sc, -fc * .6, 11 * sc, 3 * sc, fl ? '#fff' : '#bff7ff'); spike(x + fc * 6 * sc, top + 3 * sc, fc * .6, 10 * sc, 3 * sc, fl ? '#fff' : '#bff7ff'); }
@@ -471,7 +487,9 @@
   const TW = 960;
   let bgd = null;
   const rng = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const BGA = { ice: 'night', volcano: 'factory', desert: 'roof', train: 'street', ship: 'roof', neon: 'night' };   // yangi xaritalar uchun 2D o'xshashi
   B.bgInit = kind => {
+    kind = BGA[kind] || kind;
     bgd = { kind };
     const r = rng(kind === 'roof' ? 77 : kind === 'street' ? 31 : 11);
     const sky = (n, minH, maxH, wmin, wmax) => { const a = []; let x = 0; while (x < TW) { const w = wmin + r() * (wmax - wmin), h = minH + r() * (maxH - minH); a.push({ x, w, h, ant: r() < .3, win: Math.floor(r() * 3) }); x += w - 2; } return a; };
@@ -780,7 +798,8 @@
     if (o && o.alarm) { const a = .08 + .08 * Math.sin(t * 4); c.fillStyle = 'rgba(255,20,20,' + a + ')'; c.fillRect(0, 0, VW, 540); }
   };
 
-  B.drawBG = (c, kind, cam, t, o) => { if (!bgd || bgd.kind !== kind) B.bgInit(kind); BG[kind](c, cam, t, o || {}); };
+  B.drawBG = (c, kind, cam, t, o) => {
+    kind = BGA[kind] || kind; if (!bgd || bgd.kind !== kind) B.bgInit(kind); BG[kind](c, cam, t, o || {}); };
   B.vignette = (c) => {
     const VW = B.VW, g = c.createRadialGradient(VW / 2, 270, 220, VW / 2, 270, VW * .62);
     g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.38)'); c.fillStyle = g; c.fillRect(0, 0, VW, 540);
