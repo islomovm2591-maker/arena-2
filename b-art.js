@@ -299,7 +299,7 @@
       c.restore();
     }
   }
-  // 3D rejimi: tana 3D'da (b-3d-fig.js), bu yerda faqat yuz detallari va qurol 2D'da ustidan chiziladi
+  // 3D rejimi: tana va qurol 3D'da (b-3d-fig.js, b-3d-wep.js), bu yerda faqat yuz detallari 2D'da ustidan chiziladi
   B.drawFigOverlay = (c, f, P, o) => {
     o = Object.assign({}, o, { g3: true });
     const lying = f.pk === 'down', S = B.skel(f, P, lying), sc = f.sc, fc = f.face, t = f.t || 0;
@@ -307,9 +307,8 @@
     if (o.alpha != null) c.globalAlpha = o.alpha;
     if (lying || f.rot) { const r = f.rot != null ? f.rot : -1.5 * fc; c.translate(S.hx, S.hy); c.rotate(r); c.translate(-S.hx, -S.hy); }
     c.lineCap = 'round'; c.lineJoin = 'round';
-    if (f.wep === 'dual' && f.pk !== 'down') { c.save(); c.translate(S.handB[0], S.handB[1]); c.rotate(Math.atan2(S.wdb[1], S.wdb[0])); if (fc < 0) c.scale(1, -1); c.scale(sc * .95 * (f.wscale || 1), sc * .95 * (f.wscale || 1)); B.weaponDraw(c, 'dual', 48, t); c.restore(); }
     decor(c, f, S, t, o);
-    drawWep(c, f, S, t);
+    if (!B.g3.wepUpd) drawWep(c, f, S, t);
     c.restore();
     return S;
   };

@@ -1009,6 +1009,7 @@
   }
   function drawFx(t) {
     fx.forEach(p => {
+      if (g3was && (p.k === 'ring' || p.k === 'pillar')) { B.g3.fx(p); return; }
       const a = 1 - p.t / p.life;
       switch (p.k) {
         case 'blood': c.fillStyle = p.col; c.beginPath(); c.arc(p.x, GY - p.z, p.r, 0, TAU); c.fill(); break;

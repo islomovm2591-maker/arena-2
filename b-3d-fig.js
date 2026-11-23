@@ -11,7 +11,7 @@
   let frame = 0, heroSeen = -1;
 
   // doimiy qahramon nuri (yo'qolib-paydo bo'lganda shader qayta kompilyatsiya bo'lmasligi uchun)
-  const heroLight = new T.PointLight(0xffffff, 0, 340, 2); root.add(heroLight);
+  const heroLight = new T.PointLight(0xffffff, 0, 380, 1); root.add(heroLight);
 
   // ---------- Geometriya (umumiy, kesh) ----------
   const geo = {};
@@ -128,10 +128,11 @@
       r.crown.rotation.z = -(P[0] + P[10]) * fc - rot;
       r.crown.userData.upd(e.t || 0);
     }
+    if (G3.wepUpd) G3.wepUpd(r, e, S, X, Y, zf, zk, rot, e.t || 0);
     if (r.hero) {
       heroSeen = frame;
       heroLight.color.set(r.fl ? '#ffffff' : r.hid.col);
-      heroLight.intensity = 1.3 * (r.a == null ? 1 : r.a);
+      heroLight.intensity = 1.7 * (r.a == null ? 1 : r.a);
       heroLight.position.set(X(hp), Y(hp) + 30 * sc, zb + 60);
     }
   };

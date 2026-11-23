@@ -85,7 +85,7 @@
     else if (kind === 'road') { c.fillStyle = b; for (let x = 0; x < w; x += 64) c.fillRect(x + 8, 60, 34, 6); }
     else { c.globalAlpha = .18; for (let i = 0; i < 160; i++) { c.fillStyle = sr() < .5 ? b : '#fff'; c.fillRect(sr() * w, sr() * h, 3, 3); } }
   }, rx, ry);
-  const floor = (m, z0, z1, x0, x1, y) => { const o = mesh(plG, m, (x0 + x1) / 2, y || 0, (z0 + z1) / 2, x1 - x0, z0 - z1, 1, false); o.rotation.x = -Math.PI / 2; o.receiveShadow = true; return o; };
+  const floor = (m, z0, z1, x0, x1, y) => { m = new T.MeshPhongMaterial({ color: m.color, map: m.map, shininess: 6, specular: new T.Color('#151515') }); const o = mesh(plG, m, (x0 + x1) / 2, y || 0, (z0 + z1) / 2, x1 - x0, z0 - z1, 1, false); o.rotation.x = -Math.PI / 2; o.receiveShadow = true; return o; };
   const wall = (m, z, x0, x1, h) => { const o = mesh(plG, m, (x0 + x1) / 2, h / 2, z, x1 - x0, h, 1, false); o.receiveShadow = true; return o; };
   const stars = (n, c) => {
     const g = new T.BufferGeometry(), p = new Float32Array(n * 3);
@@ -251,7 +251,11 @@
     if (alarmL) alarmL.intensity = .25 + .25 * Math.sin(t * 6);
     for (let i = 0; i < anims.length; i++) anims[i](t);
   };
-  G3.flush = () => { if (G3.actorsEnd) G3.actorsEnd(); R.render(scene, camera); };
+  let lastF = 0;
+  G3.flush = () => {
+    const now = performance.now(), dt = Math.min(.1, (now - (lastF || now)) / 1000); lastF = now;
+    if (G3.actorsEnd) G3.actorsEnd(); if (G3.fxEnd) G3.fxEnd(dt); R.render(scene, camera);
+  };
   G3.render = (...a) => { G3.frame(...a); G3.flush(); };
   G3.dbg = () => ({ scene, camera, R, key });
   G3.show = v => { cv3.style.display = v ? 'block' : 'none'; document.body.classList.toggle('g3', !!v); };
