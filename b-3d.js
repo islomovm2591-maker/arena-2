@@ -27,6 +27,7 @@
   const camera = new T.PerspectiveCamera(FOV, B.VW / 540, 20, 9000);
   const scene = new T.Scene();
   let root = null, key = '', anims = [], sun = null, hemi = null, alarmL = null;
+  const actors = G3.actors = new T.Group();   // jangchilar (b-3d-fig.js) — xarita qayta qurilganda saqlanadi
 
   // ---------- O'lcham ----------
   G3.resize = () => {
@@ -222,7 +223,7 @@
       Object.values(mcache).forEach(m => { if (m.map) m.map.dispose(); m.dispose(); }); for (const k in mcache) delete mcache[k];
     }
     while (scene.children.length) scene.remove(scene.children[0]);
-    root = new T.Group(); scene.add(root); anims = [];
+    root = new T.Group(); scene.add(root); scene.add(actors); anims = [];
     seed = 1 + (B.LV.indexOf(L) + 2) * 7919;
     hemi = new T.HemisphereLight(0xffffff, 0x444444, .7); scene.add(hemi);
     sun = new T.DirectionalLight(0xffffff, .6); sun.castShadow = true;
@@ -236,7 +237,8 @@
 
   // ---------- Har kadr ----------
   // cam — 2D kamera siljishi; shx/shy — silkinish; zm, sx, sy — 2D'dagi zum markazi (mantiqiy koordinatada)
-  G3.render = (cam, t, L, shx, shy, zm, sx, sy) => {
+  // kadr boshi: kamera va xarita (jangchilar keyin G3.fig / G3.boss orqali yangilanadi, so'ng G3.flush)
+  G3.frame = (cam, t, L, shx, shy, zm, sx, sy) => {
     const k = L.bg + '|' + L.len + '|' + (L.alarm ? 1 : 0) + (L.sunset ? 1 : 0) + '|' + L.n;
     if (k !== key) { key = k; build(L); }
     const VW = B.VW;
@@ -248,8 +250,9 @@
     sun.position.set(cx - 500, 1400, 900); sun.target.position.set(cx, 0, -200);
     if (alarmL) alarmL.intensity = .25 + .25 * Math.sin(t * 6);
     for (let i = 0; i < anims.length; i++) anims[i](t);
-    R.render(scene, camera);
   };
+  G3.flush = () => { if (G3.actorsEnd) G3.actorsEnd(); R.render(scene, camera); };
+  G3.render = (...a) => { G3.frame(...a); G3.flush(); };
   G3.dbg = () => ({ scene, camera, R, key });
   G3.show = v => { cv3.style.display = v ? 'block' : 'none'; document.body.classList.toggle('g3', !!v); };
   G3.show(false);

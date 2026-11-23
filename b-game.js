@@ -930,6 +930,7 @@
   }
 
   // ======================= CHIZISH =======================
+  let g3was = null;
   function drawEnt(e, t) {
     const P = e.type === 'hero' || e.pk !== 'mech' && e.pk !== 'heli' ? B.poseOf(e) : null;
     const o = { flash: e.flash > 0 };
@@ -941,14 +942,15 @@
       B.comic(c, '!', e.x, GY - 270 - Math.sin(t * 20) * 4, 34, '#ff4d4d', '#2a0000');
     }
     e.t0 = e.t0 || 0;
-    if (e.pk === 'mech') { B.drawMech(c, e, t, e.flash > 0); stFx(e, t); return; }
-    if (e.pk === 'heli') { B.drawHeli(c, e, t, e.flash > 0); stFx(e, t); return; }
+    const g3 = g3was;
+    if (e.pk === 'mech' || e.pk === 'heli') { if (g3) B.g3.boss(e, t, e.flash > 0, o.alpha); else if (e.pk === 'mech') B.drawMech(c, e, t, e.flash > 0); else B.drawHeli(c, e, t, e.flash > 0); stFx(e, t); return; }
     if (e.type === 'hero' && !e.dead && e.hd) {
       if (fury) B.aura(c, e.hd.el === 'fire' ? B.HEROES.quyosh : B.HEROES.alanga, e.x, GY - e.z - 56 * e.sc, t, e.sc / 1.3 * (1.1 + .06 * Math.sin(t * 9)), .85);
       B.aura(c, e.hd, e.x, GY - e.z - 56 * e.sc, t, e.sc / 1.3, e.st === 'skill' ? 1.25 : fury ? 1.2 : .8);
     }
     const was = e.t; e.t = t; // ko'rinish soati
-    B.drawFig(c, e, P, o); e.t = was; stFx(e, t);
+    if (g3) { B.g3.fig(e, P, o); B.drawFigOverlay(c, e, P, o); } else B.drawFig(c, e, P, o);
+    e.t = was; stFx(e, t);
   }
   function stFx(e, t) {           // muz, chaqmoq, gangish
     if (e.dead) return;
@@ -1034,7 +1036,7 @@
     });
   }
   function drawCrate(cr) {
-    if (cr.hp <= 0) return; const x = cr.x + (cr.sh > 0 ? rnd(-2, 2) : 0);
+    if (cr.hp <= 0) return; if (g3was) { B.g3.crate(cr); return; } const x = cr.x + (cr.sh > 0 ? rnd(-2, 2) : 0);
     B.shadow(c, x, 0, 30, .3);
     c.save(); c.translate(x, GY);
     if (cr.k === 'crate') {
@@ -1182,7 +1184,6 @@
     // kino chiziqlari (letterbox)
     if (cine > .01) { const bh = 52 * B.ease(cine); c.fillStyle = '#000'; c.fillRect(0, 0, VW, bh); c.fillRect(0, 540 - bh, VW, bh); }
   }
-  let g3was = null;
   B.render = (t) => {
     const cv = B.cv, inGame = !(G.mode === 'menu' || !hero), g3 = inGame && B.g3.on();
     if (g3 !== g3was) { g3was = g3; B.g3.show(g3); }
@@ -1194,18 +1195,18 @@
     if (shake > 0) { shx = rnd(-1, 1) * shake * 12; shy = rnd(-1, 1) * shake * 10; c.translate(shx, shy); }
     const tt = time, ct = cam;
     if (zoom > 1.001) { const sx = clamp(zfx - ct, B.VW * .25, B.VW * .75), sy = clamp(GY - zfy, 200, 400); zsx = sx; zsy = sy; zm = zoom; c.translate(sx, sy); c.scale(zoom, zoom); c.translate(-sx, -sy); }
-    if (g3) B.g3.render(ct, t, L, shx, shy, zm, zsx, zsy); else B.drawBG(c, L.bg, ct, t, L);
+    if (g3) B.g3.frame(ct, t, L, shx, shy, zm, zsx, zsy); else B.drawBG(c, L.bg, ct, t, L);
     c.save(); c.translate(-Math.round(ct), 0);
     stains.forEach(s => { c.globalAlpha = Math.min(1, s.a); c.fillStyle = '#7a0b14'; c.beginPath(); c.ellipse(s.x, s.y, s.r * 1.6, s.r * .5, 0, 0, TAU); c.fill(); }); c.globalAlpha = 1;
     drawCracks(); crates.forEach(drawCrate);
     items.forEach(it => { if (it.x > ct - 40 && it.x < ct + B.VW + 40) drawItem(it, t); });
-    en.forEach(e => { if (e.pk !== 'heli') B.shadow(c, e.x, e.z, e.hw * 1.5); else B.shadow(c, e.x, e.z * .9, 70, .25); });
-    B.shadow(c, hero.x, hero.z, 34);
+    if (!g3) { en.forEach(e => { if (e.pk !== 'heli') B.shadow(c, e.x, e.z, e.hw * 1.5); else B.shadow(c, e.x, e.z * .9, 70, .25); }); B.shadow(c, hero.x, hero.z, 34); }
     en.slice().sort((a, b) => (b.boss ? 1 : 0) - (a.boss ? 1 : 0)).forEach(e => { if (e.x > ct - 260 && e.x < ct + B.VW + 260) drawEnt(e, t); });
     drawGhosts();
     drawEnt(hero, t);
     drawTrail(); drawProj(t); drawFx(t); drawTx();
     c.restore();
+    if (g3) B.g3.flush();
     B.vignette(c);
     if (flashA > 0) { c.globalAlpha = Math.min(.7, flashA); c.fillStyle = '#fff'; c.fillRect(0, 0, B.VW, 540); c.globalAlpha = 1; }
     if (hero.hp < hero.maxhp * .25 && !hero.dead) { const a = .12 + .08 * Math.sin(t * 6); const g = c.createRadialGradient(B.VW / 2, 270, 260, B.VW / 2, 270, B.VW * .6); g.addColorStop(0, 'rgba(255,0,0,0)'); g.addColorStop(1, 'rgba(255,0,0,' + (a * 3) + ')'); c.fillStyle = g; c.fillRect(0, 0, B.VW, 540); }
