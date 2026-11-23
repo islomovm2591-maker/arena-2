@@ -242,6 +242,7 @@
     setOv('<div class="top"><button class="bt sm gray" data-a="' + (from === 'pause' ? 'pausebk' : 'main') + '">⬅ Orqaga</button><div class="row" style="gap:6px">' + pills() + '</div></div>' +
       '<div class="screen"><div class="banner"><span>Sozlamalar</span></div><div class="panel" style="display:flex;flex-direction:column;gap:calc(var(--u)*8);align-items:center">' +
       tog('snd', '🔊 Ovoz') + tog('vib', '📳 Tebranish') + tog('blood', '🩸 Qon') +
+      (B.g3.ok ? tog('g3', '🧊 3D grafika') : '<div class="tog"><span>🧊 3D grafika</span><span>bu qurilmada yo' + "'" + 'q</span></div>') +
       '<div class="tog"><span>🎚 Qiyinlik</span><div class="chips">' + ['Oson', 'Oddiy', 'Qiyin'].map((n, i) => '<button class="bt sm ' + (s.diff === i ? 'green' : 'gray') + '" data-a="diff2" data-v="' + i + '">' + n + '</button>').join('') + '</div></div></div>' +
       '<div class="row"><button class="bt sm blue" data-a="offhelp">📶 Offline yordam</button><button class="bt sm gray" data-a="help">❓ Boshqaruv</button><button class="bt sm gray" data-a="fs">⛶ To\'liq ekran</button><button class="bt sm red" data-a="reset">' + (confirmReset ? 'Rostdan o\'chirilsinmi?' : '🗑 Progressni o\'chirish') + '</button></div></div>', 'dim2');
   }

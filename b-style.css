@@ -2,6 +2,8 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff;overscroll-behavior:none}
 canvas#c{position:fixed;left:0;top:0;display:block;background:#000}
+canvas#c3{position:fixed;left:0;top:0;display:none;background:#000}
+body.g3 canvas#c{background:transparent}
 #ver{position:fixed;left:calc(4px + var(--sl));bottom:2px;font:10px sans-serif;color:#fff6;z-index:40;pointer-events:none}
 .cm{font-family:var(--f);font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.02em;text-shadow:calc(var(--o)*-1) calc(var(--o)*-1) 0 #111,var(--o) calc(var(--o)*-1) 0 #111,calc(var(--o)*-1) var(--o) 0 #111,var(--o) var(--o) 0 #111,0 calc(var(--o)*2.6) 0 #111,calc(var(--o)*-1) 0 0 #111,var(--o) 0 0 #111}
 

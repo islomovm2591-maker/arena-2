@@ -1182,14 +1182,19 @@
     // kino chiziqlari (letterbox)
     if (cine > .01) { const bh = 52 * B.ease(cine); c.fillStyle = '#000'; c.fillRect(0, 0, VW, bh); c.fillRect(0, 540 - bh, VW, bh); }
   }
+  let g3was = null;
   B.render = (t) => {
-    const cv = B.cv; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#000'; c.fillRect(0, 0, cv.width, cv.height);
+    const cv = B.cv, inGame = !(G.mode === 'menu' || !hero), g3 = inGame && B.g3.on();
+    if (g3 !== g3was) { g3was = g3; B.g3.show(g3); }
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    if (g3) c.clearRect(0, 0, cv.width, cv.height); else { c.fillStyle = '#000'; c.fillRect(0, 0, cv.width, cv.height); }
     c.setTransform(B.S, 0, 0, B.S, B.ox, B.oy); c.save(); c.beginPath(); c.rect(0, 0, B.VW, 540); c.clip();
-    if (G.mode === 'menu' || !hero) { renderMenuScene(t); c.restore(); return; }
-    if (shake > 0) c.translate(rnd(-1, 1) * shake * 12, rnd(-1, 1) * shake * 10);
+    if (!inGame) { renderMenuScene(t); c.restore(); return; }
+    let shx = 0, shy = 0, zsx = 0, zsy = 0, zm = 1;
+    if (shake > 0) { shx = rnd(-1, 1) * shake * 12; shy = rnd(-1, 1) * shake * 10; c.translate(shx, shy); }
     const tt = time, ct = cam;
-    if (zoom > 1.001) { const sx = clamp(zfx - ct, B.VW * .25, B.VW * .75), sy = clamp(GY - zfy, 200, 400); c.translate(sx, sy); c.scale(zoom, zoom); c.translate(-sx, -sy); }
-    B.drawBG(c, L.bg, ct, t, L);
+    if (zoom > 1.001) { const sx = clamp(zfx - ct, B.VW * .25, B.VW * .75), sy = clamp(GY - zfy, 200, 400); zsx = sx; zsy = sy; zm = zoom; c.translate(sx, sy); c.scale(zoom, zoom); c.translate(-sx, -sy); }
+    if (g3) B.g3.render(ct, t, L, shx, shy, zm, zsx, zsy); else B.drawBG(c, L.bg, ct, t, L);
     c.save(); c.translate(-Math.round(ct), 0);
     stains.forEach(s => { c.globalAlpha = Math.min(1, s.a); c.fillStyle = '#7a0b14'; c.beginPath(); c.ellipse(s.x, s.y, s.r * 1.6, s.r * .5, 0, 0, TAU); c.fill(); }); c.globalAlpha = 1;
     drawCracks(); crates.forEach(drawCrate);
