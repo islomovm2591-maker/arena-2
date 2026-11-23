@@ -12,7 +12,7 @@ B.mmss = s => { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2,
 
 // ---------- Saqlash ----------
 const KEY = 'sj2_save_v1';
-B.defSave = () => ({ coins: 100, gems: 0, pot: 3, hpL: 0, mpL: 0, own: { pipe: 1 }, wl: { pipe: 1 }, eq: 'pipe', hero: 'muz', heroOwn: { muz: 1 }, unl: 1, stars: {}, best: { endless: 0 }, set: { snd: 1, vib: 1, blood: 1, g3: 1 }, diff: 1 });
+B.defSave = () => ({ coins: 100, gems: 0, pot: 3, hpL: 0, mpL: 0, own: { pipe: 1 }, wl: { pipe: 1 }, eq: 'pipe', hero: 'muz', heroOwn: { muz: 1 }, unl: 1, stars: {}, best: { endless: 0 }, set: { snd: 1, vib: 1, blood: 1, g3: 1, gq: -1 }, diff: 1 });
 B.S0 = B.defSave();
 B.load = () => {
   try {

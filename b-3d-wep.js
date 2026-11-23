@@ -150,6 +150,7 @@
   const flashes = [0, 1, 2].map(() => { const l = new T.PointLight(0xffffff, 0, 500, 1); root.add(l); return { l, t: 1, life: 1, p: 0 }; });
   let fi = 0;
   G3.flash = (x, y, col, power, rad, life) => {
+    if (!G3.Q().lights) return;
     const f = flashes[fi = (fi + 1) % flashes.length];
     f.l.color.set(col); f.l.position.set(x, y, 90); f.l.distance = rad || 500; f.p = power; f.t = 0; f.life = life || .35;
   };

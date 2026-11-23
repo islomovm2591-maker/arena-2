@@ -29,6 +29,28 @@
   let root = null, key = '', anims = [], sun = null, hemi = null, alarmL = null;
   const actors = G3.actors = new T.Group();   // jangchilar (b-3d-fig.js) — xarita qayta qurilganda saqlanadi
 
+  // ---------- Grafika sifati: 0 Past, 1 O'rta, 2 Yuqori; sozlama -1 (yoki yo'q) — Avto ----------
+  // sh — soyalar, map — soya xaritasi o'lchami, part — zarrachalar ulushi, out — konturlar, dpr — piksel zichligi, lights — nuqtali nurlar
+  const QL = G3.QL = [
+    { n: 'Past', sh: false, map: 512, part: .3, out: false, dpr: 1, lights: false },
+    { n: "O'rta", sh: true, soft: false, map: 1024, part: .6, out: true, dpr: 1.5, lights: true },   // soyalar yumshatilmaydi — ancha arzon
+    { n: 'Yuqori', sh: true, soft: true, map: 1024, part: 1, out: true, dpr: 2, lights: true }
+  ];
+  let qAuto = null, qCur = -1;
+  // qurilma turi bir marta aniqlanadi (o'yin o'rtasida sifat o'zgarib, xarita qayta qurilmasligi uchun)
+  const PHONE = ('ontouchstart' in window) || !!(window.matchMedia && matchMedia('(pointer:coarse)').matches), isPhone = () => PHONE;
+  G3.qAuto = () => { const s = B.S0.set.gq; return s == null || s < 0; };
+  G3.qLevel = () => G3.qAuto() ? (qAuto != null ? qAuto : (isPhone() ? 1 : 2)) : Math.max(0, Math.min(2, B.S0.set.gq));
+  G3.Q = () => QL[G3.qLevel()];
+  // sifatni qo'llash: piksel zichligi, soyalar; xarita qayta quriladi (zarrachalar soni o'zgaradi)
+  G3.setQ = () => {
+    const lv = G3.qLevel(), Q = QL[lv]; if (lv === qCur) return; qCur = lv;
+    B.dprCap = Q.dpr; B.resize();
+    const st = Q.soft ? T.PCFSoftShadowMap : T.BasicShadowMap;
+    if (R.shadowMap.enabled !== Q.sh || R.shadowMap.type !== st) { R.shadowMap.enabled = Q.sh; R.shadowMap.type = st; scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => { m.needsUpdate = true; }); }); }
+    key = '';
+  };
+
   // ---------- O'lcham ----------
   G3.resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, B.dprCap);
@@ -226,8 +248,9 @@
     root = new T.Group(); scene.add(root); scene.add(actors); anims = [];
     seed = 1 + (B.LV.indexOf(L) + 2) * 7919;
     hemi = new T.HemisphereLight(0xffffff, 0x444444, .7); scene.add(hemi);
-    sun = new T.DirectionalLight(0xffffff, .6); sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -900, right: 900, top: 700, bottom: -300, near: 10, far: 2600 });
+    const Q = G3.Q();
+    sun = new T.DirectionalLight(0xffffff, .6); sun.castShadow = Q.sh;
+    sun.shadow.mapSize.set(Q.map, Q.map); Object.assign(sun.shadow.camera, { left: -900, right: 900, top: 700, bottom: -300, near: 10, far: 2600 });
     sun.shadow.bias = -.002; scene.add(sun); scene.add(sun.target);
     alarmL = null;
     const len = L.len || 3000, x0 = -1200, x1 = len + 1600;
@@ -248,7 +271,8 @@
   // cam — 2D kamera siljishi; shx/shy — silkinish; zm, sx, sy — 2D'dagi zum markazi (mantiqiy koordinatada)
   // kadr boshi: kamera va xarita (jangchilar keyin G3.fig / G3.boss orqali yangilanadi, so'ng G3.flush)
   G3.frame = (cam, t, L, shx, shy, zm, sx, sy) => {
-    const k = L.bg + '|' + L.len + '|' + (L.alarm ? 1 : 0) + (L.sunset ? 1 : 0) + '|' + L.n;
+    if (G3.qLevel() !== qCur) G3.setQ();
+    const k = L.bg + '|' + L.len + '|' + (L.alarm ? 1 : 0) + (L.sunset ? 1 : 0) + '|' + L.n + '|' + qCur;
     if (k !== key) { key = k; build(L); }
     const VW = B.VW;
     if (Math.abs(camera.aspect - VW / 540) > 1e-4) G3.resize();
@@ -261,11 +285,18 @@
     if (alarmL) alarmL.intensity = .4 + .35 * Math.sin(t * 6);
     for (let i = 0; i < anims.length; i++) anims[i](t, cx);
   };
-  let lastF = 0;
+  let lastF = 0, ema = 16, slowT = 0;
   G3.flush = () => {
-    const now = performance.now(), dt = Math.min(.1, (now - (lastF || now)) / 1000); lastF = now;
+    const now = performance.now(), raw = now - (lastF || now), dt = Math.min(.1, raw / 1000); lastF = now;
+    // Avto sifat: kadr uzoq vaqt 30 ms dan oshsa, bir pog'ona pasaytiriladi (yashirin oyna sekinlashuvi hisobga olinmaydi)
+    if (raw > 0 && raw < 200) {
+      ema = ema * .95 + raw * .05;
+      if (G3.qAuto() && G3.qLevel() > 0 && ema > 30) { slowT += raw; if (slowT > 3000) { qAuto = G3.qLevel() - 1; slowT = 0; ema = 20; G3.setQ(); if (B.onQDown) B.onQDown(QL[qAuto].n); } }
+      else slowT = Math.max(0, slowT - raw * .5);
+    }
     if (G3.actorsEnd) G3.actorsEnd(); if (G3.fxEnd) G3.fxEnd(dt); R.render(scene, camera);
   };
+  G3.frameMs = () => ema;
   G3.render = (...a) => { G3.frame(...a); G3.flush(); };
   G3.dbg = () => ({ scene, camera, R, key });
   G3.show = v => { cv3.style.display = v ? 'block' : 'none'; document.body.classList.toggle('g3', !!v); };

@@ -107,6 +107,7 @@
     if (!r) { r = makeFig(e); rigs.set(e, r); }
     r.seen = frame; r.g.visible = true;
     setLook(r, o || {});
+    const Q = G3.Q(), out = Q.out;
     const lying = e.pk === 'down', S = B.skel(e, P, lying), sc = r.sc, fc = e.face;
     // yotgan / aylangan holat: hammasi son atrofida buriladi (2D'dagidek)
     let rot = 0; if (lying || e.rot) rot = e.rot != null ? e.rot : -1.5 * fc;
@@ -114,14 +115,14 @@
     const X = p => S.hx + (p[0] - S.hx) * cr - (p[1] - S.hy) * sn, Y = p => GY - (S.hy + (p[0] - S.hx) * sn + (p[1] - S.hy) * cr);
     const zb = r.z, zf = zb + 5 * sc, zk = zb - 5 * sc;
     const sh = [S.sx, S.sy], hp = [S.hx, S.hy], nk = [S.nx, S.ny];
-    const L = (pair, a, b, z) => { const ax = X(a), ay = Y(a), bx = X(b), by = Y(b); place(pair[0], ax, ay, bx, by, z); place(pair[1], ax, ay, bx, by, z); };
+    const L = (pair, a, b, z) => { const ax = X(a), ay = Y(a), bx = X(b), by = Y(b); place(pair[0], ax, ay, bx, by, z); pair[1].visible = out; if (out) place(pair[1], ax, ay, bx, by, z); };
     L(r.armB1, sh, S.elbB, zk); L(r.armB2, S.elbB, S.handB, zk);
     L(r.legB1, hp, S.kneeB, zk); L(r.legB2, S.kneeB, S.footB, zk);
     L(r.torso, hp, nk, zb);
     L(r.legF1, hp, S.kneeF, zf); L(r.legF2, S.kneeF, S.footF, zf);
     L(r.armF1, sh, S.elbF, zf); L(r.armF2, S.elbF, S.handF, zf);
     const hd = [S.hdx, S.hdy], hx = X(hd), hy = Y(hd);
-    r.head[0].position.set(hx, hy, zb); r.head[1].position.set(hx, hy, zb);
+    r.head[0].position.set(hx, hy, zb); r.head[1].position.set(hx, hy, zb); r.head[1].visible = out;
     if (r.crown) {
       r.crown.position.set(hx, hy, zb);
       r.crown.scale.set(sc * fc, sc, sc);
@@ -132,7 +133,7 @@
     if (r.hero) {
       heroSeen = frame;
       heroLight.color.set(r.fl ? '#ffffff' : r.hid.col);
-      heroLight.intensity = 1.7 * (r.a == null ? 1 : r.a);
+      heroLight.intensity = Q.lights ? 1.7 * (r.a == null ? 1 : r.a) : 0;
       heroLight.position.set(X(hp), Y(hp) + 30 * sc, zb + 60);
     }
   };

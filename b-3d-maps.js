@@ -15,7 +15,7 @@
   // kamera atrofida doimo mavjud zarrachalar (yomg'ir, qor, chang, gullar...)
   // o: { n, col, size, map, add, op, y:[a,b], z:[a,b], w (kenglik), vx, vy, sway, rise (true — tepaga) }
   function particles(A, o) {
-    const n = o.n, g = new T.BufferGeometry(), p = new Float32Array(n * 3), ph = new Float32Array(n), W = o.w || 1800;
+    const n = Math.max(4, Math.round(o.n * G3.Q().part)), g = new T.BufferGeometry(), p = new Float32Array(n * 3), ph = new Float32Array(n), W = o.w || 1800;
     for (let i = 0; i < n; i++) { p[i * 3] = A.srr(-W, W); p[i * 3 + 1] = A.srr(o.y[0], o.y[1]); p[i * 3 + 2] = A.srr(o.z[0], o.z[1]); ph[i] = A.sr() * TAU; }
     g.setAttribute('position', new T.BufferAttribute(p, 3));
     const m = new T.PointsMaterial({ color: new T.Color(o.col), size: o.size, map: o.map || dot(A), transparent: true, opacity: o.op == null ? .9 : o.op, depthWrite: false, blending: o.add ? T.AdditiveBlending : T.NormalBlending });
