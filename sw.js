@@ -1,8 +1,8 @@
 // Stickman Jang 2 — offline kesh (service worker)
 // Har yangi versiyada VER ni oshiring — shunda telefon yangi fayllarni oladi.
 // Kesh nomi "sj2-" bilan boshlanadi: eski "Arena" o'yinining keshiga tegmaydi.
-const VER = 'sj2-v6';
-const FILES = ['./', 'index.html', 'b-style.css', 'b-core.js', 'b-art.js', 'b-hero.js', 'b-3d.js', 'b-3d-fig.js', 'b-3d-wep.js', 'lib/three.min.js', 'b-game.js', 'b-net.js', 'b-config.js', 'b-ui.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'icon-maskable-512.png'];
+const VER = 'sj2-v7';
+const FILES = ['./', 'index.html', 'b-style.css', 'b-core.js', 'b-art.js', 'b-hero.js', 'b-3d.js', 'b-3d-maps.js', 'b-3d-fig.js', 'b-3d-wep.js', 'lib/three.min.js', 'b-game.js', 'b-net.js', 'b-config.js', 'b-ui.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'icon-maskable-512.png'];
 // har bir fayl alohida yuklanadi: bittasi xato bersa ham qolganlari saqlanadi
 async function precache() {
   const c = await caches.open(VER), bad = [];

@@ -231,9 +231,18 @@
     sun.shadow.bias = -.002; scene.add(sun); scene.add(sun.target);
     alarmL = null;
     const len = L.len || 3000, fn = TH[L.bg] || TH.room;
+    sunOff.set(-500, 1400, 900);
     fn(-1200, len + 1600, L);
     if (L.alarm) { alarmL = new T.AmbientLight(0xff2020, 0); scene.add(alarmL); }
+    // qo'shimcha detallar va kayfiyat (b-3d-maps.js)
+    const X = G3.extra;
+    if (X) {
+      const api = { T, root, scene, hemi, sun, sunOff, anims, box, cyl, sph, plane, mesh, lam, glow, canvasTex, sr, srr, boxG, cylG, sphG, plG, len };
+      if (X[L.bg]) X[L.bg](api, -1200, len + 1600, L);
+      if (X.mood) X.mood(api, -1200, len + 1600, L);
+    }
   }
+  const sunOff = new T.Vector3(-500, 1400, 900);
 
   // ---------- Har kadr ----------
   // cam — 2D kamera siljishi; shx/shy — silkinish; zm, sx, sy — 2D'dagi zum markazi (mantiqiy koordinatada)
@@ -247,9 +256,9 @@
     const qx = (sx || 0) + (VW / 2 - shx - (sx || 0)) / zm, qy = (sy || 0) + (270 - shy - (sy || 0)) / zm;
     camera.position.set(cam + qx, GY - qy, D / zm);
     const cx = cam + VW / 2;
-    sun.position.set(cx - 500, 1400, 900); sun.target.position.set(cx, 0, -200);
-    if (alarmL) alarmL.intensity = .25 + .25 * Math.sin(t * 6);
-    for (let i = 0; i < anims.length; i++) anims[i](t);
+    sun.position.set(cx + sunOff.x, sunOff.y, sunOff.z); sun.target.position.set(cx, 0, -200);
+    if (alarmL) alarmL.intensity = .4 + .35 * Math.sin(t * 6);
+    for (let i = 0; i < anims.length; i++) anims[i](t, cx);
   };
   let lastF = 0;
   G3.flush = () => {
