@@ -15,6 +15,30 @@
   // kamera atrofida takrorlanib harakatlanadigan narsa (poyezd manzarasi uchun)
   const scroller = (A, objs, speed, span) => A.anims.push((t, cx) => objs.forEach(o => { let x = o.userData.bx - t * speed; x = ((x - cx + span / 2) % span + span) % span - span / 2 + cx; o.position.x = x; }));
 
+  // ---------- Bosh menyu: qahramon poydevorda, orqada uning rangidagi sahna ----------
+  TM.menu = (A, x0, x1, L) => {
+    const H = L.hero, px = L.px, col = new T.Color(H.col);
+    A.scene.background = A.sky([H.bg[0], H.bg[1], H.bg[2], H.bg[1]]);
+    const fl = A.floor(A.lam('#ffffff', { map: A.floorTex('tile', '#14141f', '#22223a', (x1 - x0) / 120, 5) }), 500, -900, x0, x1);
+    shine(fl, 90, H.col);
+    // poydevor: ikki qavatli disk + yonib turgan halqa + aylanuvchi belgilar halqasi
+    A.cyl(120, 22, A.lam('#1a1a2a'), px, 0, 0); A.cyl(96, 14, A.lam('#262640'), px, 22, 0);
+    const ring = new T.Mesh(new T.TorusGeometry(108, 3.4, 8, 64), A.glow(H.col)); ring.rotation.x = Math.PI / 2; ring.position.set(px, 23, 0); add(ring, A);
+    const rt = A.canvasTex(256, 32, (c, w, h) => { c.fillStyle = H.lite; c.font = '900 22px Arial'; c.textBaseline = 'middle'; for (let i = 0; i < 12; i++) c.fillText('ᚠᚢᚦᚨᚱᚲᚷᚹ'[i % 8], i * 21 + 4, h / 2); });
+    const rune = new T.Mesh(new T.CylinderGeometry(122, 122, 16, 48, 1, true), tb({ map: rt, transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }));
+    rt.wrapS = T.RepeatWrapping; rt.repeat.x = 3; rune.position.set(px, 10, 0); add(rune, A);
+    A.anims.push(t => { rune.rotation.y = t * .4; ring.material.color.copy(col).multiplyScalar(.8 + .2 * Math.sin(t * 3)); });
+    // orqada ko'tarilib turgan nur ustunlari
+    for (let i = -4; i <= 4; i++) {
+      const b = A.mesh(new T.CylinderGeometry(1, 1, 1, 12, 1, true), tb({ color: H.col, transparent: true, opacity: .12, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }), px + i * 260, 600, -700 - Math.abs(i) * 60, 26, 1400, 26, false);
+      const ph = i; A.anims.push(t => { b.material.opacity = .07 + .07 * Math.sin(t * 1.4 + ph); });
+    }
+    U.particles(A, { n: 90, col: H.lite, size: 9, add: true, op: .8, y: [0, 600], z: [-500, 200], vy: 40, sway: 20 });
+    A.hemi.color.set(H.lite); A.hemi.groundColor.set(H.bg[0]); A.hemi.intensity = .75; A.sun.color.set('#ffffff'); A.sun.intensity = .7;
+    A.sunOff.set(-400, 1300, 1100);
+    A.scene.fog = new T.Fog(H.bg[0], 1500, 5000);
+  };
+
   // ---------- Muzlik g'ori ----------
   TM.ice = (A, x0, x1) => {
     A.scene.background = new T.Color('#061826');

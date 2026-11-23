@@ -1242,12 +1242,12 @@
     if (cine > .01) { const bh = 52 * B.ease(cine); c.fillStyle = '#000'; c.fillRect(0, 0, VW, bh); c.fillRect(0, 540 - bh, VW, bh); }
   }
   B.render = (t) => {
-    const cv = B.cv, inGame = !(G.mode === 'menu' || !hero), g3 = inGame && B.g3.on();
+    const cv = B.cv, inGame = !(G.mode === 'menu' || !hero), g3 = B.g3.on();
     if (g3 !== g3was) { g3was = g3; B.g3.show(g3); }
     c.setTransform(1, 0, 0, 1, 0, 0);
     if (g3) c.clearRect(0, 0, cv.width, cv.height); else { c.fillStyle = '#000'; c.fillRect(0, 0, cv.width, cv.height); }
     c.setTransform(B.S, 0, 0, B.S, B.ox, B.oy); c.save(); c.beginPath(); c.rect(0, 0, B.VW, 540); c.clip();
-    if (!inGame) { renderMenuScene(t); c.restore(); return; }
+    if (!inGame) { renderMenuScene(t, g3); c.restore(); return; }
     let shx = 0, shy = 0, zsx = 0, zsy = 0, zm = 1;
     if (shake > 0) { shx = rnd(-1, 1) * shake * 12; shy = rnd(-1, 1) * shake * 10; c.translate(shx, shy); }
     if (hz.sway) { c.translate(B.VW / 2, 270); c.rotate(hz.sway); c.translate(-B.VW / 2, -270); }
@@ -1276,7 +1276,26 @@
   };
 
   // ---------- Menyu fon sahnasi: tanlangan qahramon poydevorda, aura va zarralar ----------
-  function renderMenuScene(t) {
+  // 3D menyu: qahramon poydevorda, orqada qahramon rangidagi sahna (b-3d-maps2.js: 'menu')
+  let menuL = null, menuF = null;
+  function renderMenu3D(t) {
+    const H = B.heroDef(), VW = B.VW, x = Math.round(Math.max(230, (VW - 352) / 2 + 6)), sc = 2.5;
+    if (!menuL || menuL.hero !== H || menuL.px !== x) menuL = { bg: 'menu', n: 'menu:' + H.n + ':' + x, len: 1600, hero: H, px: x, crates: [], encs: [] };
+    B.g3.frame(0, t, menuL, 0, 0, 1, 0, 0);
+    if (B.menuHero !== false) {
+      const wep = B.S0.eq || 'pipe', wl = (W[wep] || { len: 60 }).len, cyc = (t % 3) / 3;
+      const f = menuF || (menuF = { type: 'hero', z: 0, face: 1, ph: 0, vx: 0, num: 0 });
+      Object.assign(f, { hd: H, x, gy: GY - 36, sc, pk: 'show', pu: 0, t, wep, wscale: Math.min(1, 200 / (wl * sc)) });
+      if (cyc > .55 && cyc < .9) { f.pk = 's1'; f.pu = Math.min(1, (cyc - .55) / .35); }
+      const P = B.poseOf(f);
+      B.aura(c, H, x, GY - 36 - 56 * sc, t, sc / 1.3, .7);
+      B.g3.fig(f, P, {}); B.drawFigOverlay(c, f, P, {});
+    }
+    B.g3.flush();
+    B.vignette(c);
+  }
+  function renderMenuScene(t, g3) {
+    if (g3) { renderMenu3D(t); return; }
     const H = B.heroDef(), VW = B.VW;
     B.backdrop(c, H, VW, 540, t);
     c.save(); c.globalCompositeOperation = 'lighter';

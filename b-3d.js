@@ -301,4 +301,6 @@
   G3.dbg = () => ({ scene, camera, R, key });
   G3.show = v => { cv3.style.display = v ? 'block' : 'none'; document.body.classList.toggle('g3', !!v); };
   G3.show(false);
+  // versiya yorlig'i: qurilmada 3D ishlayaptimi — bir qarashda ko'rinadi
+  const ver = document.getElementById('ver'); if (ver) ver.textContent = (B.VER || '') + ' · 3D';
 })();
